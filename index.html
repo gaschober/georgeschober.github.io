@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>George Schober</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e10;
+    --bg-card: #18181c;
+    --bg-card-hover: #1f1f25;
+    --text: #e8e6e3;
+    --text-muted: #9a9891;
+    --accent: #c9ff57;
+    --accent-dim: rgba(201,255,87,0.12);
+    --border: #2a2a30;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --nav-height: 64px;
+    --max-width: 960px;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--nav-height);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 clamp(1.25rem, 4vw, 3rem);
+    background: rgba(14,14,16,0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+  }
+  nav .logo {
+    font-family: var(--font-display);
+    font-weight: 700; font-size: 1.15rem;
+    color: var(--text); text-decoration: none;
+    letter-spacing: -0.02em;
+    cursor: pointer;
+  }
+  nav .nav-links { display: flex; gap: 2rem; }
+  nav .nav-links a {
+    font-family: var(--font-body);
+    font-size: 0.875rem; font-weight: 400;
+    color: var(--text-muted); text-decoration: none;
+    transition: color var(--transition);
+    cursor: pointer;
+    position: relative;
+  }
+  nav .nav-links a::after {
+    content: ''; position: absolute;
+    bottom: -4px; left: 0; width: 0; height: 1.5px;
+    background: var(--accent);
+    transition: width var(--transition);
+  }
+  nav .nav-links a:hover, nav .nav-links a.active { color: var(--text); }
+  nav .nav-links a:hover::after, nav .nav-links a.active::after { width: 100%; }
+
+  /* Mobile hamburger */
+  .hamburger { display: none; cursor: pointer; background: none; border: none; padding: 6px; }
+  .hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: var(--text); margin: 5px 0;
+    transition: var(--transition);
+  }
+  .mobile-menu {
+    display: none; position: fixed; top: var(--nav-height); left: 0; right: 0;
+    background: rgba(14,14,16,0.97);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem;
+    z-index: 99;
+  }
+  .mobile-menu.open { display: flex; flex-direction: column; gap: 1rem; }
+  .mobile-menu a {
+    font-family: var(--font-body);
+    font-size: 1rem; color: var(--text-muted);
+    text-decoration: none; cursor: pointer;
+    padding: 0.5rem 0;
+  }
+  .mobile-menu a:hover { color: var(--text); }
+
+  @media (max-width: 600px) {
+    nav .nav-links { display: none; }
+    .hamburger { display: block; }
+  }
+
+  /* ── MAIN ── */
+  main {
+    padding-top: var(--nav-height);
+    min-height: 100vh;
+  }
+
+  .page { display: none; animation: fadeIn 0.4s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── HOME ── */
+  .hero {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: clamp(3rem, 8vw, 6rem) clamp(1.25rem, 4vw, 3rem) 2rem;
+    display: flex; gap: 3rem; align-items: center;
+  }
+  .hero-avatar {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .hero-text h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+    font-weight: 700; letter-spacing: -0.03em;
+    margin-bottom: 0.6rem; line-height: 1.2;
+  }
+  .hero-text h1 span { color: var(--accent); }
+  .hero-text p {
+    color: var(--text-muted); font-size: 0.95rem;
+    max-width: 520px;
+  }
+
+  @media (max-width: 600px) {
+    .hero { flex-direction: column; text-align: center; gap: 1.5rem; }
+    .hero-avatar { width: 110px; height: 110px; }
+  }
+
+  /* Project Grid */
+  .project-grid {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 1rem clamp(1.25rem, 4vw, 3rem) 4rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  @media (max-width: 640px) { .project-grid { grid-template-columns: 1fr; } }
+
+  .project-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform var(--transition), border-color var(--transition), background var(--transition);
+  }
+  .project-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    background: var(--bg-card-hover);
+  }
+  .project-card img {
+    width: 100%; height: 180px;
+    object-fit: cover;
+    display: block;
+    transition: filter var(--transition);
+  }
+  .project-card:hover img { filter: brightness(1.1); }
+  .project-card .card-body {
+    padding: 1rem 1.25rem 1.25rem;
+  }
+  .project-card .card-body h3 {
+    font-family: var(--font-display);
+    font-size: 1.05rem; font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .project-card .card-body .tag {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.7rem; font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ── PROJECT DETAIL PAGES ── */
+  .detail {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: clamp(2.5rem, 6vw, 4rem) clamp(1.25rem, 4vw, 3rem) 4rem;
+  }
+  .detail-header-img {
+    width: 100%;
+    max-height: 360px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .detail h2 {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700; letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+  }
+  .detail .subtitle {
+    color: var(--text-muted); font-size: 0.95rem;
+    margin-bottom: 2rem; max-width: 640px;
+  }
+  .detail h3 {
+    font-family: var(--font-display);
+    font-size: 1.15rem; font-weight: 600;
+    margin: 2rem 0 0.75rem;
+    color: var(--accent);
+  }
+  .detail ul {
+    padding-left: 1.25rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .detail ul li { margin-bottom: 0.5rem; }
+  .detail ul li::marker { color: var(--accent); }
+  .detail ul ul { margin-top: 0.35rem; }
+
+  .detail .images-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    margin: 2rem 0;
+  }
+  .detail .images-row img {
+    width: 100%; border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  @media (max-width: 600px) { .detail .images-row { grid-template-columns: 1fr; } }
+
+  .detail .ext-link {
+    display: inline-block;
+    margin-top: 0.75rem;
+    color: var(--accent); font-size: 0.875rem; font-weight: 500;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--transition);
+  }
+  .detail .ext-link:hover { border-color: var(--accent); }
+
+  .detail-nav {
+    display: flex; justify-content: space-between;
+    margin-top: 3rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .detail-nav a {
+    color: var(--text-muted); text-decoration: none;
+    font-size: 0.85rem; font-weight: 500;
+    cursor: pointer;
+    transition: color var(--transition);
+  }
+  .detail-nav a:hover { color: var(--accent); }
+  .detail-nav a span {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1rem; color: var(--text);
+    margin-top: 0.15rem;
+  }
+
+  /* ── RESUME ── */
+  .resume-page {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: clamp(2.5rem, 6vw, 4rem) clamp(1.25rem, 4vw, 3rem) 4rem;
+  }
+  .resume-page .download-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 2.5rem;
+  }
+  .resume-page .download-bar h2 {
+    font-family: var(--font-display);
+    font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em;
+  }
+  .resume-page .download-bar a {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: var(--accent); color: var(--bg);
+    font-family: var(--font-body);
+    font-size: 0.8rem; font-weight: 600;
+    padding: 0.55rem 1.1rem; border-radius: 6px;
+    text-decoration: none;
+    transition: opacity var(--transition);
+  }
+  .resume-page .download-bar a:hover { opacity: 0.85; }
+
+  .resume-section { margin-bottom: 2.5rem; }
+  .resume-section h3 {
+    font-family: var(--font-display);
+    font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--accent); margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .resume-entry { margin-bottom: 1.75rem; }
+  .resume-entry h4 {
+    font-family: var(--font-display);
+    font-size: 1rem; font-weight: 600;
+    margin-bottom: 0.15rem;
+  }
+  .resume-entry .meta {
+    font-size: 0.82rem; color: var(--text-muted);
+    font-style: italic; margin-bottom: 0.5rem;
+  }
+  .resume-entry ul {
+    padding-left: 1.25rem;
+    color: var(--text-muted); font-size: 0.88rem;
+  }
+  .resume-entry ul li { margin-bottom: 0.35rem; }
+  .resume-entry ul li::marker { color: var(--accent); }
+
+  .skills-list {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+  }
+  .skills-list span {
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 0.75rem; font-weight: 500;
+    padding: 0.3rem 0.7rem; border-radius: 5px;
+    letter-spacing: 0.02em;
+  }
+
+  .interests-text {
+    color: var(--text-muted); font-size: 0.9rem;
+  }
+
+  .resume-header-block {
+    text-align: center; margin-bottom: 2rem;
+    padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);
+  }
+  .resume-header-block h2 {
+    font-family: var(--font-display);
+    font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem;
+  }
+  .resume-header-block p {
+    font-size: 0.85rem; color: var(--text-muted);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.82rem; color: var(--text-muted);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Stagger animation for grid cards */
+  .project-card { opacity: 0; animation: cardIn 0.5s ease forwards; }
+  .project-card:nth-child(1) { animation-delay: 0.05s; }
+  .project-card:nth-child(2) { animation-delay: 0.12s; }
+  .project-card:nth-child(3) { animation-delay: 0.19s; }
+  .project-card:nth-child(4) { animation-delay: 0.26s; }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<!-- ────── NAV ────── -->
+<nav>
+  <a class="logo" onclick="navigate('home')">George Schober</a>
+  <div class="nav-links">
+    <a onclick="navigate('home')" id="nav-work">Work</a>
+    <a onclick="navigate('resume')" id="nav-resume">Resume</a>
+  </div>
+  <button class="hamburger" onclick="toggleMobile()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <a onclick="navigate('home'); closeMobile()">Work</a>
+  <a onclick="navigate('resume'); closeMobile()">Resume</a>
+</div>
+
+<!-- ────── PAGES ────── -->
+<main>
+
+<!-- HOME / WORK -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <img class="hero-avatar" src="images/avatar.png" alt="George Schober">
+    <div class="hero-text">
+      <h1>George <span>Schober</span></h1>
+      <p>Senior Technical Designer at High Moon Studios focusing on AI and their supporting systems. Experienced in designing content around AI combatants, developing and supporting systems that help with the design process.</p>
+    </div>
+  </section>
+
+  <section class="project-grid">
+    <div class="project-card" onclick="navigate('cod')">
+      <img src="images/cod.jpg" alt="Call Of Duty">
+      <div class="card-body">
+        <h3>Call Of Duty</h3>
+        <span class="tag">High Moon Studios</span>
+      </div>
+    </div>
+    <div class="project-card" onclick="navigate('rockstar')">
+      <img src="images/rockstar.png" alt="Rockstar Games">
+      <div class="card-body">
+        <h3>Rockstar Games</h3>
+        <span class="tag">Game Designer</span>
+      </div>
+    </div>
+    <div class="project-card" onclick="navigate('plunderpanic')">
+      <img src="images/plunderpanic-1.png" alt="Plunder Panic">
+      <div class="card-body">
+        <h3>Plunder Panic</h3>
+        <span class="tag">GEL Lab – MSU</span>
+      </div>
+    </div>
+    <div class="project-card" onclick="navigate('whipslash')">
+      <img src="images/whipslash-1.png" alt="Whipslash">
+      <div class="card-body">
+        <h3>Whipslash</h3>
+        <span class="tag">GEL Lab – MSU</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- CALL OF DUTY -->
+<div class="page" id="page-cod">
+  <div class="detail">
+    <img class="detail-header-img" src="images/cod.jpg" alt="Call Of Duty">
+    <h2>High Moon Studios – Call Of Duty</h2>
+    <p class="subtitle">At High Moon Studios, I'm responsible for the design and development of many unique encounters seen across Call Of Duty. I also work very closely with our Engineering team to improve our AI systems, supporting quicker implementation and additional features.</p>
+
+    <h3>Black Ops 6</h3>
+    <ul>
+      <li>Designed and balanced elements of soldier AI stealth system in various Campaign missions</li>
+      <li>Collaborated with the Engineering team to enhance ambient AI systems, making them more dynamic and facilitating ease of use for designers</li>
+      <li>Started working in the C++ codebase to swiftly diagnose and fix issues in enemy AI systems</li>
+    </ul>
+
+    <h3>Modern Warfare III</h3>
+    <ul>
+      <li>Conceived and developed a new fast travel system for MWZ game mode
+        <ul>
+          <li>These fast travel doors promoted community engagement upon release and added a layer of complexity and longevity to the overall mode</li>
+          <li>This idea started as a brainstorming exercise; leadership liked the idea enough to request a prototype</li>
+          <li>After positive reception, iterated on multiple rounds of feedback and continued to prove the design</li>
+        </ul>
+      </li>
+      <li>Redesigned and created attack helicopter enemy, along with new pathing logic that is continually used for helicopter movement</li>
+    </ul>
+
+    <div class="detail-nav">
+      <div></div>
+      <a onclick="navigate('rockstar')">Next →<span>Rockstar Games</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ROCKSTAR GAMES -->
+<div class="page" id="page-rockstar">
+  <div class="detail">
+    <img class="detail-header-img" src="images/rockstar.png" alt="Rockstar Games">
+    <h2>Rockstar Games – Game Designer</h2>
+    <p class="subtitle">At Rockstar I was responsible for designing and implementing systems and content in an open world setting using proprietary software and C# for the new entry in the Grand Theft Auto series.</p>
+
+    <h3>Contributions</h3>
+    <ul>
+      <li>Designed and produced open world encounters for the player to discover organically and revisit</li>
+      <li>Collaborated across teams in many different disciplines to ensure content is developed efficiently
+        <ul>
+          <li>Worked with Code team to develop NPC behavior toward the player</li>
+          <li>Frequently worked with writing team to develop dialogue for events as well as ambient NPCs</li>
+        </ul>
+      </li>
+      <li>Created project templates that standardized the process of starting a new event, allowing designers to have a working event in minutes instead of hours</li>
+      <li>Designed NPC behavioral responses to the player based on the context of the interaction</li>
+      <li>Designed and implemented new components to manage shared behavior between events</li>
+      <li>Refactored existing components into a new script framework</li>
+      <li>Assisted with onboarding of new team members by setting up lines of communication to encourage team building</li>
+      <li>Improved task tracking techniques using company-specific and public task tracking software</li>
+      <li>Utilized visual scripting to improve event production</li>
+    </ul>
+
+    <div class="detail-nav">
+      <a onclick="navigate('cod')">← Previous<span>Call Of Duty</span></a>
+      <a onclick="navigate('plunderpanic')">Next →<span>Plunder Panic</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- PLUNDER PANIC -->
+<div class="page" id="page-plunderpanic">
+  <div class="detail">
+    <h2>Plunder Panic</h2>
+    <p class="subtitle">Plunder Panic is a pirate-themed, up to 12-player, action-arcade game where two teams race to one of four win conditions. In 2017 it attended IndieCade and won the Audience Choice Award. Development continued with a substantial graphics overhaul and the addition of AI bots. In 2019 the game was part of the IndieCade Esports showcase, and it was released on Steam in September 2021.</p>
+    <a class="ext-link" href="https://store.steampowered.com/app/1455900/Plunder_Panic/" target="_blank" rel="noopener">View on Steam ↗</a>
+
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-top:1.5rem;">I began work on Plunder Panic in May of 2019, brought on to develop AI bots and rework existing gameplay features and systems.</p>
+
+    <div class="images-row">
+      <img src="images/plunderpanic-1.png" alt="Plunder Panic screenshot">
+      <img src="images/plunderpanic-2.png" alt="Plunder Panic screenshot">
+    </div>
+
+    <h3>Contributions</h3>
+    <ul>
+      <li>Designed and created a dual-utility AI for decision making among bots</li>
+      <li>Created a node-based movement system and used a modified A* algorithm for pathing</li>
+      <li>Designed and created an interchangeable action system for developing bot behavior</li>
+      <li>Implemented a universal data tracking system to help track and balance victories</li>
+      <li>Utilized a virtual controller to create bot behavior and allow for easier networking implementation</li>
+      <li>Designed and created new character select scene with variations for both Arcade and Nintendo Switch versions</li>
+      <li>Implemented new menu system featuring updated art</li>
+      <li>Implemented new game startup loop and pause functionality</li>
+      <li>Reworked functionality of the heavy gold chest item to prevent imbalanced gameplay</li>
+    </ul>
+
+    <div class="detail-nav">
+      <a onclick="navigate('rockstar')">← Previous<span>Rockstar Games</span></a>
+      <a onclick="navigate('whipslash')">Next →<span>Whipslash</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- WHIPSLASH -->
+<div class="page" id="page-whipslash">
+  <div class="detail">
+    <h2>Whipslash</h2>
+    <p class="subtitle">In the far future, you find yourself trapped in a complex full of extremely hostile robots. Armed with two electric axes, you must fight your way out. Whipslash was a project for a Game Design Studio course at Michigan State University and was accepted as one of the 550 games competing in the 2020 Independent Games Festival.</p>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-top:1rem;">I served as producer and a gameplay/systems programmer with a focus on enemy interaction.</p>
+
+    <div class="images-row">
+      <img src="images/whipslash-1.png" alt="Whipslash screenshot">
+      <img src="images/whipslash-2.png" alt="Whipslash screenshot">
+    </div>
+
+    <h3>Contributions</h3>
+    <ul>
+      <li>Implemented a Kung-fu circle attack system to keep enemies in front of the player without overwhelming them</li>
+      <li>Designed and developed a grapple movement system to traverse the large environment</li>
+      <li>Added aim-assisted targeting for axe throwing mechanic</li>
+      <li>Created a ragdoll system using character joints to allow the player to tear apart grunt enemies</li>
+      <li>Implemented and enhanced a generic audio manager system</li>
+      <li>Managed a team of 10 students throughout a semester, keeping the game within scope</li>
+      <li>Rescoped project when necessary to ensure the team hit desired goals without being overworked</li>
+      <li>Created a character-driven responsive audio system to dynamically transition between faster and slower sections of the same song</li>
+    </ul>
+
+    <div class="detail-nav">
+      <a onclick="navigate('plunderpanic')">← Previous<span>Plunder Panic</span></a>
+      <div></div>
+    </div>
+  </div>
+</div>
+
+<!-- RESUME -->
+<div class="page" id="page-resume">
+  <div class="resume-page">
+    <div class="download-bar">
+      <h2>Resume</h2>
+      <a href="GeorgeSchoberResume.pdf" target="_blank" rel="noopener">↓ Download PDF</a>
+    </div>
+
+    <div class="resume-header-block">
+      <h2>George Schober</h2>
+      <p>Encinitas, CA · george.a.schober@gmail.com · georgeschober.com</p>
+    </div>
+
+    <!-- Experience -->
+    <div class="resume-section">
+      <h3>Professional Experience</h3>
+
+      <div class="resume-entry">
+        <h4>Senior Technical Designer – High Moon Studios</h4>
+        <div class="meta">Call of Duty franchise</div>
+        <ul>
+          <li>Designed and balanced soldier AI stealth systems in Campaign missions</li>
+          <li>Collaborated with Engineering to enhance ambient AI systems</li>
+          <li>Conceived and developed a new fast travel system for MWZ</li>
+          <li>Redesigned attack helicopter enemy and pathing logic</li>
+        </ul>
+      </div>
+
+      <div class="resume-entry">
+        <h4>Game Designer: Open World Events – Rockstar Games San Diego</h4>
+        <div class="meta">Grand Theft Auto series · June 2020 – Present</div>
+        <ul>
+          <li>Designed and produced open world encounters for organic player discovery</li>
+          <li>Collaborated across disciplines to ensure efficient content development</li>
+          <li>Created project templates standardizing event creation</li>
+          <li>Designed NPC behavioral responses based on interaction context</li>
+          <li>Implemented new components to manage shared behavior between events</li>
+          <li>Refactored existing components into a new script framework</li>
+          <li>Assisted onboarding of new team members</li>
+        </ul>
+      </div>
+
+      <div class="resume-entry">
+        <h4>Gameplay Programmer/Developer – GEL Lab, MSU</h4>
+        <div class="meta">March 2019 – May 2020</div>
+        <ul>
+          <li><strong>Plunder Panic:</strong> Designed dual-utility AI system, modified A* pathing, redesigned menus, created generic audio manager</li>
+          <li><strong>Whipslash:</strong> Led team of 10 as producer/lead programmer, implemented enemy AI, developed core mechanics</li>
+          <li><strong>Brain Powered Games Africa:</strong> Designed data collection system, rebuilt game suite, traveled to Uganda for playtesting</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Education -->
+    <div class="resume-section">
+      <h3>Education</h3>
+      <div class="resume-entry">
+        <h4>Michigan State University</h4>
+        <div class="meta">B.S. Computer Science · Minor in Game Design &amp; Development · GPA 3.82 · May 2020</div>
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="resume-section">
+      <h3>Skills</h3>
+      <div class="skills-list">
+        <span>C#</span><span>C++</span><span>C</span><span>Visual Scripting</span>
+        <span>Behavior Trees</span><span>Unity</span><span>VR Development</span>
+        <span>Visio</span><span>Linear Algebra</span><span>Python</span>
+        <span>JavaScript</span><span>Data Analysis</span>
+      </div>
+    </div>
+
+    <!-- Interests -->
+    <div class="resume-section">
+      <h3>Interests</h3>
+      <p class="interests-text">Artificial Intelligence · Machine Learning · Systems Design · Tool Development · Psychology Behind Player Choice · Game Theory</p>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ────── FOOTER ────── -->
+<footer>
+  <a href="mailto:george.a.schober@gmail.com">george.a.schober@gmail.com</a>
+</footer>
+
+<script>
+  const pages = ['home','cod','rockstar','plunderpanic','whipslash','resume'];
+
+  function navigate(page) {
+    pages.forEach(p => {
+      document.getElementById('page-' + p).classList.remove('active');
+    });
+    document.getElementById('page-' + page).classList.add('active');
+
+    // Update nav active state
+    document.getElementById('nav-work').classList.toggle('active', page !== 'resume');
+    document.getElementById('nav-resume').classList.toggle('active', page === 'resume');
+
+    // Update hash
+    window.location.hash = page === 'home' ? '' : page;
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // Re-trigger card animations on home
+    if (page === 'home') {
+      document.querySelectorAll('.project-card').forEach(c => {
+        c.style.animation = 'none';
+        c.offsetHeight; // trigger reflow
+        c.style.animation = '';
+      });
+    }
+  }
+
+  function toggleMobile() {
+    document.getElementById('mobile-menu').classList.toggle('open');
+  }
+  function closeMobile() {
+    document.getElementById('mobile-menu').classList.remove('open');
+  }
+
+  // Handle initial hash
+  window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.replace('#','');
+    if (hash && pages.includes(hash)) navigate(hash);
+    else navigate('home');
+  });
+
+  // Handle back/forward
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#','');
+    if (hash && pages.includes(hash)) navigate(hash);
+    else navigate('home');
+  });
+</script>
+
+</body>
+</html>
