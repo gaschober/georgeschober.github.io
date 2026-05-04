@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0f">
 <title>George Schober</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -24,11 +25,14 @@
   }
 
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+    background: var(--bg);
+  }
 
   body {
     font-family: var(--font-body);
-    background: transparent;
+    background: var(--bg);
     color: var(--text);
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
@@ -49,7 +53,9 @@
   nav {
     position: fixed; top: 0; left: 0; right: 0;
     height: var(--nav-height);
-    display: flex; align-items: center; justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     padding: 0 clamp(1.5rem, 4vw, 3rem);
     background: rgba(10,10,15,0.7);
     backdrop-filter: blur(20px);
@@ -57,6 +63,9 @@
     border-bottom: 1px solid var(--border);
     z-index: 100;
   }
+  nav .logo { justify-self: start; }
+  nav .nav-links { justify-self: center; }
+  nav .score-display { justify-self: end; }
   nav .logo {
     font-family: var(--font-display);
     font-weight: 800; font-size: 1.1rem;
@@ -65,7 +74,8 @@
     cursor: pointer;
   }
   nav .logo span { color: var(--accent); }
-  nav .nav-links { display: flex; gap: 2.5rem; align-items: center; }
+  nav .nav-links { display: flex; gap: 1.25rem; align-items: center; }
+  nav .nav-sep { color: var(--text-muted); opacity: 0.4; user-select: none; }
   nav .nav-links a {
     font-family: var(--font-body);
     font-size: 0.82rem; font-weight: 500;
@@ -85,6 +95,11 @@
   nav .nav-links a:hover, nav .nav-links a.active { color: var(--text); }
   nav .nav-links a:hover::after, nav .nav-links a.active::after { width: 100%; }
 
+  .score-display .score-label-short { display: none; }
+  @media (max-width: 600px) {
+    .score-display .score-label-full { display: none; }
+    .score-display .score-label-short { display: inline; }
+  }
   .score-display {
     font-family: 'Courier New', monospace;
     font-size: 0.75rem;
@@ -111,9 +126,9 @@
     scroll-behavior: smooth;
   }
   /* Spacer so user can scroll content fully off-screen */
-  #page-home .home-center::after {
-    content: '';
+  #home-spacer {
     display: block;
+    width: 100%;
     height: calc(100vh - var(--nav-height));
     flex-shrink: 0;
   }
@@ -464,9 +479,10 @@
   <a class="logo" onclick="navigate('home')">George<span>.</span></a>
   <div class="nav-links">
     <a onclick="navigate('home')" id="nav-work">Work</a>
+    <span class="nav-sep">|</span>
     <a onclick="navigate('resume')" id="nav-resume">Resume</a>
   </div>
-  <div class="score-display" id="nav-score">HIGH SCORE: 00000</div>
+  <div class="score-display"><span class="score-label-full">HIGH SCORE: </span><span class="score-label-short">HI: </span><span id="nav-score">00000</span></div>
 </nav>
 
 <!-- PAGES -->
@@ -507,6 +523,7 @@
         </div>
       </div>
     </div>
+    <div id="home-spacer"></div>
   </div>
 </div>
 
@@ -842,7 +859,7 @@ window.addEventListener('hashchange', () => {
       localStorage.setItem('gs_hiscore', highScore);
     }
     const s = String(highScore).padStart(5, '0');
-    document.getElementById('nav-score').textContent = 'HIGH SCORE: ' + s;
+    document.getElementById('nav-score').textContent = s;
   }
 
   const ship = { x: 0, y: 0, width: 28, height: 16 };
@@ -947,7 +964,9 @@ window.addEventListener('hashchange', () => {
   // otherwise preventDefault() blocks taps on cards/links and page scroll.
   function isGameTouch(e) {
     const t = e.target;
-    return t === document.body || t === document.documentElement;
+    return t === document.body
+        || t === document.documentElement
+        || (t && t.id === 'home-spacer');
   }
 
   window.addEventListener('touchstart', e => {
