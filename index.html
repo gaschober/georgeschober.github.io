@@ -8,32 +8,41 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0e0e10;
-    --bg-card: #18181c;
-    --bg-card-hover: #1f1f25;
-    --text: #e8e6e3;
-    --text-muted: #9a9891;
+    --bg: #0a0a0f;
+    --bg-card: #13131a;
+    --bg-card-hover: #1c1c26;
+    --text: #eae8e4;
+    --text-muted: #7a7870;
     --accent: #c9ff57;
-    --accent-dim: rgba(201,255,87,0.12);
-    --border: #2a2a30;
+    --accent-dim: rgba(201,255,87,0.10);
+    --border: #222230;
     --font-display: 'Syne', sans-serif;
     --font-body: 'DM Sans', sans-serif;
-    --nav-height: 64px;
-    --max-width: 960px;
-    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --nav-height: 60px;
+    --max-width: 1000px;
+    --transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
   html { scroll-behavior: smooth; }
 
   body {
     font-family: var(--font-body);
-    background: var(--bg);
+    background: transparent;
     color: var(--text);
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GAME CANVAS ── */
+  #game-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
   }
 
   /* ── NAV ── */
@@ -41,212 +50,248 @@
     position: fixed; top: 0; left: 0; right: 0;
     height: var(--nav-height);
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 clamp(1.25rem, 4vw, 3rem);
-    background: rgba(14,14,16,0.85);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    padding: 0 clamp(1.5rem, 4vw, 3rem);
+    background: rgba(10,10,15,0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
     z-index: 100;
   }
   nav .logo {
     font-family: var(--font-display);
-    font-weight: 700; font-size: 1.15rem;
+    font-weight: 800; font-size: 1.1rem;
     color: var(--text); text-decoration: none;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     cursor: pointer;
   }
-  nav .nav-links { display: flex; gap: 2rem; }
+  nav .logo span { color: var(--accent); }
+  nav .nav-links { display: flex; gap: 2.5rem; align-items: center; }
   nav .nav-links a {
     font-family: var(--font-body);
-    font-size: 0.875rem; font-weight: 400;
+    font-size: 0.82rem; font-weight: 500;
     color: var(--text-muted); text-decoration: none;
     transition: color var(--transition);
     cursor: pointer;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
     position: relative;
   }
   nav .nav-links a::after {
     content: ''; position: absolute;
-    bottom: -4px; left: 0; width: 0; height: 1.5px;
+    bottom: -3px; left: 0; width: 0; height: 1px;
     background: var(--accent);
     transition: width var(--transition);
   }
   nav .nav-links a:hover, nav .nav-links a.active { color: var(--text); }
   nav .nav-links a:hover::after, nav .nav-links a.active::after { width: 100%; }
 
-  /* Mobile hamburger */
-  .hamburger { display: none; cursor: pointer; background: none; border: none; padding: 6px; }
-  .hamburger span {
-    display: block; width: 22px; height: 2px;
-    background: var(--text); margin: 5px 0;
-    transition: var(--transition);
-  }
-  .mobile-menu {
-    display: none; position: fixed; top: var(--nav-height); left: 0; right: 0;
-    background: rgba(14,14,16,0.97);
-    backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border);
-    padding: 1.5rem;
-    z-index: 99;
-  }
-  .mobile-menu.open { display: flex; flex-direction: column; gap: 1rem; }
-  .mobile-menu a {
-    font-family: var(--font-body);
-    font-size: 1rem; color: var(--text-muted);
-    text-decoration: none; cursor: pointer;
-    padding: 0.5rem 0;
-  }
-  .mobile-menu a:hover { color: var(--text); }
-
-  @media (max-width: 600px) {
-    nav .nav-links { display: none; }
-    .hamburger { display: block; }
+  .score-display {
+    font-family: 'Courier New', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    opacity: 0.7;
   }
 
   /* ── MAIN ── */
   main {
+    position: relative;
+    z-index: 10;
     padding-top: var(--nav-height);
+    pointer-events: none;
     min-height: 100vh;
   }
+  main * { pointer-events: auto; }
 
-  .page { display: none; animation: fadeIn 0.4s ease; }
-  .page.active { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* ── HOME ── */
-  .hero {
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: clamp(3rem, 8vw, 6rem) clamp(1.25rem, 4vw, 3rem) 2rem;
-    display: flex; gap: 3rem; align-items: center;
+  /* Home page: scrollable so user can scroll content off-screen */
+  #page-home {
+    overflow-y: auto;
+    height: calc(100vh - var(--nav-height));
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
-  .hero-avatar {
-    width: 140px; height: 140px;
-    border-radius: 50%;
-    border: 2px solid var(--border);
-    object-fit: cover;
+  /* Spacer so user can scroll content fully off-screen */
+  #page-home .home-center::after {
+    content: '';
+    display: block;
+    height: calc(100vh - var(--nav-height));
     flex-shrink: 0;
   }
-  .hero-text h1 {
+
+  /* Detail + resume pages need a solid bg to read over space canvas */
+  #page-cod .detail,
+  #page-rockstar .detail,
+  #page-plunderpanic .detail,
+  #page-whipslash .detail,
+  .resume-page {
+    background: rgba(10,10,15,0.82);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 12px;
+    margin: 1rem auto;
+  }
+
+  .page { display: none; animation: fadeIn 0.35s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── HOME — Layout D (revised) ── */
+  /* Name + bio + cards — scrollable, sits above the game */
+  .home-center {
+    position: relative;
+    z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center;
+    padding: clamp(2rem, 5vh, 3.5rem) clamp(1.5rem, 4vw, 3rem) 1.5rem;
+    text-align: center;
+    pointer-events: auto;
+    gap: 0;
+  }
+
+  .home-center h1 {
     font-family: var(--font-display);
-    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
-    font-weight: 700; letter-spacing: -0.03em;
-    margin-bottom: 0.6rem; line-height: 1.2;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800; letter-spacing: -0.05em;
+    line-height: 1.0; margin-bottom: 0.75rem;
   }
-  .hero-text h1 span { color: var(--accent); }
-  .hero-text p {
-    color: var(--text-muted); font-size: 0.95rem;
-    max-width: 520px;
-  }
-
-  @media (max-width: 600px) {
-    .hero { flex-direction: column; text-align: center; gap: 1.5rem; }
-    .hero-avatar { width: 110px; height: 110px; }
+  .home-center h1 em { color: var(--accent); font-style: normal; }
+  .home-center p {
+    font-size: clamp(0.92rem, 1.3vw, 1.05rem);
+    color: var(--text-muted); max-width: 640px;
+    line-height: 1.65; margin-bottom: 2rem;
   }
 
-  /* Project Grid */
-  .project-grid {
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: 1rem clamp(1.25rem, 4vw, 3rem) 4rem;
+  /* Cards flow directly below bio */
+  .project-row {
+    pointer-events: auto;
+    width: 100%;
+    max-width: 1100px;
+    padding: 0 clamp(1.5rem, 4vw, 3rem);
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    z-index: 15;
   }
-  @media (max-width: 640px) { .project-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 720px) { .project-row { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .project-row { grid-template-columns: repeat(2, 1fr); } }
 
   .project-card {
-    background: var(--bg-card);
+    background: rgba(19,19,26,0.88);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 10px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform var(--transition), border-color var(--transition), background var(--transition);
+    transition: transform var(--transition), border-color var(--transition), background var(--transition), box-shadow var(--transition);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
   .project-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--accent);
-    background: var(--bg-card-hover);
+    transform: translateY(-5px);
+    border-color: rgba(201,255,87,0.5);
+    background: rgba(28,28,38,0.97);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 20px rgba(201,255,87,0.06);
   }
   .project-card img {
-    width: 100%; height: 180px;
+    width: 100%; height: 140px;
     object-fit: cover;
     display: block;
+    filter: brightness(0.8) saturate(0.85);
     transition: filter var(--transition);
   }
-  .project-card:hover img { filter: brightness(1.1); }
-  .project-card .card-body {
-    padding: 1rem 1.25rem 1.25rem;
-  }
-  .project-card .card-body h3 {
+  .project-card:hover img { filter: brightness(1.0) saturate(1.05); }
+  .card-body { padding: 0.85rem 1rem 1rem; }
+  .card-body h3 {
     font-family: var(--font-display);
-    font-size: 1.05rem; font-weight: 600;
-    letter-spacing: -0.01em;
+    font-size: 0.98rem; font-weight: 700;
+    letter-spacing: -0.02em; margin-bottom: 0.3rem;
   }
-  .project-card .card-body .tag {
+  .card-body .tag {
     display: inline-block;
-    margin-top: 0.5rem;
-    font-size: 0.7rem; font-weight: 500;
+    font-size: 0.6rem; font-weight: 600;
     color: var(--accent);
     background: var(--accent-dim);
-    padding: 0.2rem 0.55rem;
-    border-radius: 4px;
-    letter-spacing: 0.04em;
+    padding: 0.12rem 0.45rem;
+    border-radius: 3px;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
   }
 
-  /* ── PROJECT DETAIL PAGES ── */
+  /* Stagger */
+  .project-card { opacity: 0; animation: cardIn 0.5s ease forwards; }
+  .project-card:nth-child(1) { animation-delay: 0.04s; }
+  .project-card:nth-child(2) { animation-delay: 0.10s; }
+  .project-card:nth-child(3) { animation-delay: 0.16s; }
+  .project-card:nth-child(4) { animation-delay: 0.22s; }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Hide project row and home center when not on home page */
+  .project-row.hidden { display: none; }
+  .home-center.hidden { display: none; }
+
+  /* Footer hidden on home page */
+  footer.hidden { display: none; }
+
+  /* ── DETAIL PAGES ── */
   .detail {
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: clamp(2.5rem, 6vw, 4rem) clamp(1.25rem, 4vw, 3rem) 4rem;
+    padding: clamp(2rem, 5vw, 3.5rem) clamp(1.5rem, 4vw, 3rem) 5rem;
   }
   .detail-header-img {
-    width: 100%;
-    max-height: 360px;
+    width: 100%; max-height: 380px;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid var(--border);
     margin-bottom: 2rem;
   }
   .detail h2 {
     font-family: var(--font-display);
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    font-weight: 700; letter-spacing: -0.03em;
-    margin-bottom: 1rem;
+    font-size: clamp(1.4rem, 2.8vw, 1.9rem);
+    font-weight: 800; letter-spacing: -0.04em;
+    margin-bottom: 0.75rem;
   }
   .detail .subtitle {
-    color: var(--text-muted); font-size: 0.95rem;
-    margin-bottom: 2rem; max-width: 640px;
+    color: var(--text-muted); font-size: 0.9rem;
+    margin-bottom: 2rem; max-width: 620px;
+    line-height: 1.7;
   }
   .detail h3 {
     font-family: var(--font-display);
-    font-size: 1.15rem; font-weight: 600;
-    margin: 2rem 0 0.75rem;
-    color: var(--accent);
+    font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--accent); margin: 2rem 0 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
   }
   .detail ul {
-    padding-left: 1.25rem;
+    padding-left: 1.1rem;
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
   }
-  .detail ul li { margin-bottom: 0.5rem; }
+  .detail ul li { margin-bottom: 0.45rem; }
   .detail ul li::marker { color: var(--accent); }
-  .detail ul ul { margin-top: 0.35rem; }
+  .detail ul ul { margin-top: 0.3rem; }
 
   .detail .images-row {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
-    margin: 2rem 0;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem;
+    margin: 1.75rem 0;
   }
   .detail .images-row img {
-    width: 100%; border-radius: 10px;
+    width: 100%; border-radius: 8px;
     border: 1px solid var(--border);
+    filter: brightness(0.9) saturate(0.9);
   }
   @media (max-width: 600px) { .detail .images-row { grid-template-columns: 1fr; } }
 
   .detail .ext-link {
-    display: inline-block;
-    margin-top: 0.75rem;
-    color: var(--accent); font-size: 0.875rem; font-weight: 500;
+    display: inline-block; margin-top: 0.6rem;
+    color: var(--accent); font-size: 0.85rem; font-weight: 500;
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: border-color var(--transition);
@@ -254,210 +299,227 @@
   .detail .ext-link:hover { border-color: var(--accent); }
 
   .detail-nav {
-    display: flex; justify-content: space-between;
+    display: flex; justify-content: space-between; align-items: flex-start;
     margin-top: 3rem; padding-top: 1.5rem;
     border-top: 1px solid var(--border);
   }
   .detail-nav a {
     color: var(--text-muted); text-decoration: none;
-    font-size: 0.85rem; font-weight: 500;
-    cursor: pointer;
-    transition: color var(--transition);
+    font-size: 0.78rem; font-weight: 500;
+    cursor: pointer; transition: color var(--transition);
+    text-transform: uppercase; letter-spacing: 0.04em;
   }
   .detail-nav a:hover { color: var(--accent); }
   .detail-nav a span {
     display: block;
     font-family: var(--font-display);
-    font-size: 1rem; color: var(--text);
-    margin-top: 0.15rem;
+    font-size: 0.95rem; font-weight: 700;
+    color: var(--text); margin-top: 0.1rem;
+    text-transform: none; letter-spacing: -0.02em;
   }
 
   /* ── RESUME ── */
   .resume-page {
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: clamp(2.5rem, 6vw, 4rem) clamp(1.25rem, 4vw, 3rem) 4rem;
+    max-width: var(--max-width); margin: 0 auto;
+    padding: clamp(2rem, 5vw, 3.5rem) clamp(1.5rem, 4vw, 3rem) 5rem;
   }
-  .resume-page .download-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 2.5rem;
-  }
-  .resume-page .download-bar h2 {
+  .resume-page .page-title {
     font-family: var(--font-display);
-    font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em;
+    font-size: 1.6rem; font-weight: 800;
+    letter-spacing: -0.04em; margin-bottom: 2.5rem;
+    display: flex; align-items: center; justify-content: space-between;
   }
-  .resume-page .download-bar a {
+  .resume-page .download-btn {
     display: inline-flex; align-items: center; gap: 0.4rem;
     background: var(--accent); color: var(--bg);
     font-family: var(--font-body);
-    font-size: 0.8rem; font-weight: 600;
-    padding: 0.55rem 1.1rem; border-radius: 6px;
-    text-decoration: none;
+    font-size: 0.75rem; font-weight: 700;
+    padding: 0.5rem 1rem; border-radius: 5px;
+    text-decoration: none; letter-spacing: 0.04em;
+    text-transform: uppercase;
     transition: opacity var(--transition);
   }
-  .resume-page .download-bar a:hover { opacity: 0.85; }
+  .resume-page .download-btn:hover { opacity: 0.85; }
 
   .resume-section { margin-bottom: 2.5rem; }
-  .resume-section h3 {
+  .resume-section > h3 {
     font-family: var(--font-display);
-    font-size: 0.75rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.12em;
+    font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.14em;
     color: var(--accent); margin-bottom: 1.25rem;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
     border-bottom: 1px solid var(--border);
   }
   .resume-entry { margin-bottom: 1.75rem; }
   .resume-entry h4 {
     font-family: var(--font-display);
-    font-size: 1rem; font-weight: 600;
-    margin-bottom: 0.15rem;
+    font-size: 0.95rem; font-weight: 700; margin-bottom: 0.1rem;
   }
   .resume-entry .meta {
-    font-size: 0.82rem; color: var(--text-muted);
+    font-size: 0.8rem; color: var(--text-muted);
     font-style: italic; margin-bottom: 0.5rem;
   }
   .resume-entry ul {
-    padding-left: 1.25rem;
-    color: var(--text-muted); font-size: 0.88rem;
+    padding-left: 1.1rem;
+    color: var(--text-muted); font-size: 0.85rem;
   }
-  .resume-entry ul li { margin-bottom: 0.35rem; }
+  .resume-entry ul li { margin-bottom: 0.3rem; }
   .resume-entry ul li::marker { color: var(--accent); }
 
-  .skills-list {
-    display: flex; flex-wrap: wrap; gap: 0.5rem;
-  }
+  .skills-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
   .skills-list span {
-    background: var(--accent-dim);
-    color: var(--accent);
-    font-size: 0.75rem; font-weight: 500;
-    padding: 0.3rem 0.7rem; border-radius: 5px;
-    letter-spacing: 0.02em;
+    background: var(--accent-dim); color: var(--accent);
+    font-size: 0.72rem; font-weight: 600;
+    padding: 0.25rem 0.65rem; border-radius: 4px;
+    letter-spacing: 0.03em;
   }
 
-  .interests-text {
-    color: var(--text-muted); font-size: 0.9rem;
+  /* ── GAME HUD overlay ── */
+  .game-hud {
+    position: fixed;
+    bottom: 1.5rem; left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    display: flex; align-items: center; gap: 1.5rem;
+    background: rgba(10,10,15,0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: opacity 0.5s;
   }
+  .game-hud #hud-respawn {
+    pointer-events: auto;
+  }
+  .game-hud .hud-score { color: var(--accent); }
+  .game-hud .hud-lives { color: #ff5c57; letter-spacing: 0.1em; }
+  .game-hud .hud-sep { opacity: 0.3; }
 
-  .resume-header-block {
-    text-align: center; margin-bottom: 2rem;
-    padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);
-  }
-  .resume-header-block h2 {
-    font-family: var(--font-display);
-    font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem;
-  }
-  .resume-header-block p {
-    font-size: 0.85rem; color: var(--text-muted);
-  }
-
-  /* ── FOOTER ── */
+  /* Footer */
   footer {
+    position: relative; z-index: 10;
     text-align: center;
-    padding: 2rem 1rem;
+    padding: 1.75rem 1rem;
     border-top: 1px solid var(--border);
-    font-size: 0.82rem; color: var(--text-muted);
+    font-size: 0.78rem; color: var(--text-muted);
+    pointer-events: auto;
+    background: transparent;
   }
   footer a { color: var(--accent); text-decoration: none; }
   footer a:hover { text-decoration: underline; }
 
-  /* Stagger animation for grid cards */
-  .project-card { opacity: 0; animation: cardIn 0.5s ease forwards; }
-  .project-card:nth-child(1) { animation-delay: 0.05s; }
-  .project-card:nth-child(2) { animation-delay: 0.12s; }
-  .project-card:nth-child(3) { animation-delay: 0.19s; }
-  .project-card:nth-child(4) { animation-delay: 0.26s; }
-  @keyframes cardIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  /* Respawn button in HUD */
+  #hud-respawn {
+    display: none;
+    align-items: center; gap: 0.75rem;
+  }
+  #hud-respawn .game-over-label {
+    color: #ff5c57;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    animation: industryFlash 0.7s steps(2, end) infinite;
+    text-shadow: 0 0 8px rgba(255, 92, 87, 0.6);
+  }
+  @keyframes industryFlash {
+    0%, 49% { opacity: 1; color: #ff5c57; text-shadow: 0 0 12px rgba(255,92,87,0.9); }
+    50%, 100% { opacity: 0.4; color: #ffb3b0; text-shadow: 0 0 4px rgba(255,92,87,0.3); }
+  }
+  #hud-respawn button {
+    background: var(--accent); color: var(--bg);
+    border: none; cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 0.68rem; font-weight: 700;
+    padding: 0.3rem 0.8rem; border-radius: 4px;
+    letter-spacing: 0.08em;
+    transition: opacity 0.2s;
+    pointer-events: auto;
+  }
+  #hud-respawn button:hover { opacity: 0.8; }
 </style>
 </head>
 <body>
 
-<!-- ────── NAV ────── -->
+<!-- GAME CANVAS (behind everything) -->
+<canvas id="game-canvas"></canvas>
+
+<!-- NAV -->
 <nav>
-  <a class="logo" onclick="navigate('home')">George Schober</a>
+  <a class="logo" onclick="navigate('home')">George<span>.</span></a>
   <div class="nav-links">
     <a onclick="navigate('home')" id="nav-work">Work</a>
     <a onclick="navigate('resume')" id="nav-resume">Resume</a>
   </div>
-  <button class="hamburger" onclick="toggleMobile()" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
+  <div class="score-display" id="nav-score">HIGH SCORE: 00000</div>
 </nav>
-<div class="mobile-menu" id="mobile-menu">
-  <a onclick="navigate('home'); closeMobile()">Work</a>
-  <a onclick="navigate('resume'); closeMobile()">Resume</a>
-</div>
 
-<!-- ────── PAGES ────── -->
+<!-- PAGES -->
 <main>
 
-<!-- HOME / WORK -->
+<!-- HOME -->
 <div class="page active" id="page-home">
-  <section class="hero">
-    <img class="hero-avatar" src="images/avatar.png" alt="George Schober">
-    <div class="hero-text">
-      <h1>George <span>Schober</span></h1>
-      <p>Senior Technical Designer at High Moon Studios focusing on AI and their supporting systems. Experienced in designing content around AI combatants, developing and supporting systems that help with the design process.</p>
-    </div>
-  </section>
-
-  <section class="project-grid">
-    <div class="project-card" onclick="navigate('cod')">
-      <img src="images/cod.jpg" alt="Call Of Duty">
-      <div class="card-body">
-        <h3>Call Of Duty</h3>
-        <span class="tag">High Moon Studios</span>
+  <div class="home-center" id="home-center">
+    <h1>George <em>Schober</em></h1>
+    <p>Senior Technical Designer at High Moon Studios specializing in AI and the systems that support it. Focused on crafting compelling AI combatants and building the tools and pipelines that empower designers to do their best work.</p>
+    <div class="project-row" id="project-row">
+      <div class="project-card" onclick="navigate('cod')">
+        <img src="images/cod.jpg" alt="Call Of Duty">
+        <div class="card-body">
+          <h3>Call Of Duty</h3>
+          <span class="tag">High Moon Studios</span>
+        </div>
+      </div>
+      <div class="project-card" onclick="navigate('rockstar')">
+        <img src="images/rockstar.png" alt="Rockstar Games">
+        <div class="card-body">
+          <h3>Rockstar Games</h3>
+          <span class="tag">Open World Design</span>
+        </div>
+      </div>
+      <div class="project-card" onclick="navigate('plunderpanic')">
+        <img src="images/plunderpanic-1.png" alt="Plunder Panic">
+        <div class="card-body">
+          <h3>Plunder Panic</h3>
+          <span class="tag">GEL Lab · MSU</span>
+        </div>
+      </div>
+      <div class="project-card" onclick="navigate('whipslash')">
+        <img src="images/whipslash-1.png" alt="Whipslash">
+        <div class="card-body">
+          <h3>Whipslash</h3>
+          <span class="tag">IGF 2020</span>
+        </div>
       </div>
     </div>
-    <div class="project-card" onclick="navigate('rockstar')">
-      <img src="images/rockstar.png" alt="Rockstar Games">
-      <div class="card-body">
-        <h3>Rockstar Games</h3>
-        <span class="tag">Rockstar Games</span>
-      </div>
-    </div>
-    <div class="project-card" onclick="navigate('plunderpanic')">
-      <img src="images/plunderpanic-1.png" alt="Plunder Panic">
-      <div class="card-body">
-        <h3>Plunder Panic</h3>
-        <span class="tag">GEL Lab – MSU</span>
-      </div>
-    </div>
-    <div class="project-card" onclick="navigate('whipslash')">
-      <img src="images/whipslash-1.png" alt="Whipslash">
-      <div class="card-body">
-        <h3>Whipslash</h3>
-        <span class="tag">GEL Lab – MSU</span>
-      </div>
-    </div>
-  </section>
+  </div>
 </div>
 
-<!-- CALL OF DUTY -->
+<!-- COD -->
 <div class="page" id="page-cod">
   <div class="detail">
     <img class="detail-header-img" src="images/cod.jpg" alt="Call Of Duty">
-    <h2>High Moon Studios – Call Of Duty</h2>
-    <p class="subtitle">At High Moon Studios, I'm responsible for the design and development of many unique encounters seen across Call Of Duty. I also work very closely with our Engineering team to improve our AI systems, supporting quicker implementation and additional features.</p>
-
+    <h2>High Moon Studios — Call Of Duty</h2>
+    <p class="subtitle">Responsible for the design and development of unique encounters across Call Of Duty. Works closely with Engineering to improve AI systems, supporting quicker implementation and additional features.</p>
     <h3>Black Ops 6</h3>
     <ul>
       <li>Designed and balanced elements of soldier AI stealth system in various Campaign missions</li>
-      <li>Collaborated with the Engineering team to enhance ambient AI systems, making them more dynamic and facilitating ease of use for designers</li>
+      <li>Collaborated with Engineering to enhance ambient AI systems, making them more dynamic and easier for designers to use</li>
       <li>Started working in the C++ codebase to swiftly diagnose and fix issues in enemy AI systems</li>
     </ul>
-
     <h3>Modern Warfare III</h3>
     <ul>
       <li>Conceived and developed a new fast travel system for MWZ game mode
         <ul>
-          <li>These fast travel doors promoted community engagement upon release and added a layer of complexity and longevity to the overall mode</li>
-          <li>This idea started as a brainstorming exercise; leadership liked the idea enough to request a prototype</li>
-          <li>After positive reception, iterated on multiple rounds of feedback and continued to prove the design</li>
+          <li>Promoted community engagement upon release; added complexity and longevity to the overall mode</li>
+          <li>Started as a brainstorm; leadership requested a prototype, then iterated through multiple rounds of feedback</li>
         </ul>
       </li>
-      <li>Redesigned and created attack helicopter enemy, along with new pathing logic that is continually used for helicopter movement</li>
+      <li>Redesigned and created attack helicopter enemy, along with new pathing logic continually used for helicopter movement</li>
     </ul>
-
     <div class="detail-nav">
       <div></div>
       <a onclick="navigate('rockstar')">Next →<span>Rockstar Games</span></a>
@@ -465,31 +527,27 @@
   </div>
 </div>
 
-<!-- ROCKSTAR GAMES -->
+<!-- ROCKSTAR -->
 <div class="page" id="page-rockstar">
   <div class="detail">
     <img class="detail-header-img" src="images/rockstar.png" alt="Rockstar Games">
-    <h2>Rockstar Games – Game Designer</h2>
-    <p class="subtitle">At Rockstar I was responsible for designing and implementing systems and content in an open world setting using proprietary software and C# for the new entry in the Grand Theft Auto series.</p>
-
+    <h2>Rockstar Games — Game Designer</h2>
+    <p class="subtitle">Designed and implemented systems and content in an open world setting using proprietary software and C# for the new Grand Theft Auto entry.</p>
     <h3>Contributions</h3>
     <ul>
-      <li>Designed and produced open world encounters for the player to discover organically and revisit</li>
-      <li>Collaborated across teams in many different disciplines to ensure content is developed efficiently
+      <li>Designed and produced open world encounters for organic player discovery and replayability</li>
+      <li>Collaborated across disciplines to ensure content is developed efficiently
         <ul>
           <li>Worked with Code team to develop NPC behavior toward the player</li>
-          <li>Frequently worked with writing team to develop dialogue for events as well as ambient NPCs</li>
+          <li>Worked with writing team to develop dialogue for events and ambient NPCs</li>
         </ul>
       </li>
-      <li>Created project templates that standardized the process of starting a new event, allowing designers to have a working event in minutes instead of hours</li>
-      <li>Designed NPC behavioral responses to the player based on the context of the interaction</li>
+      <li>Created project templates standardizing event creation — from hours to minutes</li>
+      <li>Designed NPC behavioral responses based on the context of each interaction</li>
       <li>Designed and implemented new components to manage shared behavior between events</li>
       <li>Refactored existing components into a new script framework</li>
-      <li>Assisted with onboarding of new team members by setting up lines of communication to encourage team building</li>
-      <li>Improved task tracking techniques using company-specific and public task tracking software</li>
-      <li>Utilized visual scripting to improve event production</li>
+      <li>Assisted onboarding of new team members</li>
     </ul>
-
     <div class="detail-nav">
       <a onclick="navigate('cod')">← Previous<span>Call Of Duty</span></a>
       <a onclick="navigate('plunderpanic')">Next →<span>Plunder Panic</span></a>
@@ -501,29 +559,23 @@
 <div class="page" id="page-plunderpanic">
   <div class="detail">
     <h2>Plunder Panic</h2>
-    <p class="subtitle">Plunder Panic is a pirate-themed, up to 12-player, action-arcade game where two teams race to one of four win conditions. In 2017 it attended IndieCade and won the Audience Choice Award. Development continued with a substantial graphics overhaul and the addition of AI bots. In 2019 the game was part of the IndieCade Esports showcase, and it was released on Steam in September 2021.</p>
+    <p class="subtitle">A pirate-themed up-to-12-player action-arcade game where two teams race to one of four win conditions. IndieCade Audience Choice Award 2017, IndieCade Esports 2019, released on Steam September 2021.</p>
     <a class="ext-link" href="https://store.steampowered.com/app/1455900/Plunder_Panic/" target="_blank" rel="noopener">View on Steam ↗</a>
-
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-top:1.5rem;">I began work on Plunder Panic in May of 2019, brought on to develop AI bots and rework existing gameplay features and systems.</p>
-
     <div class="images-row">
       <img src="images/plunderpanic-1.png" alt="Plunder Panic screenshot">
       <img src="images/plunderpanic-2.png" alt="Plunder Panic screenshot">
     </div>
-
     <h3>Contributions</h3>
     <ul>
       <li>Designed and created a dual-utility AI for decision making among bots</li>
       <li>Created a node-based movement system and used a modified A* algorithm for pathing</li>
-      <li>Designed and created an interchangeable action system for developing bot behavior</li>
-      <li>Implemented a universal data tracking system to help track and balance victories</li>
-      <li>Utilized a virtual controller to create bot behavior and allow for easier networking implementation</li>
-      <li>Designed and created new character select scene with variations for both Arcade and Nintendo Switch versions</li>
-      <li>Implemented new menu system featuring updated art</li>
-      <li>Implemented new game startup loop and pause functionality</li>
-      <li>Reworked functionality of the heavy gold chest item to prevent imbalanced gameplay</li>
+      <li>Designed and created an interchangeable action system for bot behavior</li>
+      <li>Implemented a universal data tracking system for balance</li>
+      <li>Utilized a virtual controller for bot behavior and easier networking implementation</li>
+      <li>Designed new character select scene for Arcade and Nintendo Switch versions</li>
+      <li>Implemented new menu system and game startup loop</li>
+      <li>Reworked heavy gold chest item to prevent imbalanced gameplay</li>
     </ul>
-
     <div class="detail-nav">
       <a onclick="navigate('rockstar')">← Previous<span>Rockstar Games</span></a>
       <a onclick="navigate('whipslash')">Next →<span>Whipslash</span></a>
@@ -535,26 +587,20 @@
 <div class="page" id="page-whipslash">
   <div class="detail">
     <h2>Whipslash</h2>
-    <p class="subtitle">In the far future, you find yourself trapped in a complex full of extremely hostile robots. Armed with two electric axes, you must fight your way out. Whipslash was a project for a Game Design Studio course at Michigan State University and was accepted as one of the 550 games competing in the 2020 Independent Games Festival.</p>
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-top:1rem;">I served as producer and a gameplay/systems programmer with a focus on enemy interaction.</p>
-
+    <p class="subtitle">Armed with two electric axes, fight your way out of a complex full of hostile robots. Accepted into the 2020 Independent Games Festival — one of 550 competing titles.</p>
     <div class="images-row">
       <img src="images/whipslash-1.png" alt="Whipslash screenshot">
       <img src="images/whipslash-2.png" alt="Whipslash screenshot">
     </div>
-
     <h3>Contributions</h3>
     <ul>
-      <li>Implemented a Kung-fu circle attack system to keep enemies in front of the player without overwhelming them</li>
-      <li>Designed and developed a grapple movement system to traverse the large environment</li>
+      <li>Implemented a Kung-fu circle attack system to manage enemy positioning without overwhelming the player</li>
+      <li>Designed and developed a grapple movement system for traversal</li>
       <li>Added aim-assisted targeting for axe throwing mechanic</li>
-      <li>Created a ragdoll system using character joints to allow the player to tear apart grunt enemies</li>
-      <li>Implemented and enhanced a generic audio manager system</li>
+      <li>Created ragdoll system using character joints to allow player to tear apart grunt enemies</li>
       <li>Managed a team of 10 students throughout a semester, keeping the game within scope</li>
-      <li>Rescoped project when necessary to ensure the team hit desired goals without being overworked</li>
-      <li>Created a character-driven responsive audio system to dynamically transition between faster and slower sections of the same song</li>
+      <li>Created a character-driven responsive audio system for dynamic music transitions</li>
     </ul>
-
     <div class="detail-nav">
       <a onclick="navigate('plunderpanic')">← Previous<span>Plunder Panic</span></a>
       <div></div>
@@ -565,22 +611,14 @@
 <!-- RESUME -->
 <div class="page" id="page-resume">
   <div class="resume-page">
-    <div class="download-bar">
-      <h2>Resume</h2>
-      <a href="GeorgeSchoberResume.pdf" target="_blank" rel="noopener">↓ Download PDF</a>
+    <div class="page-title">
+      Resume
+      <a class="download-btn" href="GeorgeSchoberResume.pdf" target="_blank" rel="noopener">↓ PDF</a>
     </div>
-
-    <div class="resume-header-block">
-      <h2>George Schober</h2>
-      <p>Vista, CA · george.a.schober@gmail.com · <a href="https://gaschober.github.io/georgeschober.github.io/" target="_blank" rel="noopener">Portfolio</a></p>
-    </div>
-
-    <!-- Experience -->
     <div class="resume-section">
       <h3>Professional Experience</h3>
-
       <div class="resume-entry">
-        <h4>Senior Technical Designer – High Moon Studios</h4>
+        <h4>Senior Technical Designer — High Moon Studios</h4>
         <div class="meta">Call of Duty franchise</div>
         <ul>
           <li>Designed and balanced soldier AI stealth systems in Campaign missions</li>
@@ -589,33 +627,27 @@
           <li>Redesigned attack helicopter enemy and pathing logic</li>
         </ul>
       </div>
-
       <div class="resume-entry">
-        <h4>Game Designer: Open World Events – Rockstar Games San Diego</h4>
+        <h4>Game Designer: Open World Events — Rockstar Games San Diego</h4>
         <div class="meta">Grand Theft Auto series · June 2020 – Present</div>
         <ul>
           <li>Designed and produced open world encounters for organic player discovery</li>
-          <li>Collaborated across disciplines to ensure efficient content development</li>
           <li>Created project templates standardizing event creation</li>
           <li>Designed NPC behavioral responses based on interaction context</li>
           <li>Implemented new components to manage shared behavior between events</li>
           <li>Refactored existing components into a new script framework</li>
-          <li>Assisted onboarding of new team members</li>
         </ul>
       </div>
-
       <div class="resume-entry">
-        <h4>Gameplay Programmer/Developer – GEL Lab, MSU</h4>
+        <h4>Gameplay Programmer — GEL Lab, MSU</h4>
         <div class="meta">March 2019 – May 2020</div>
         <ul>
-          <li><strong>Plunder Panic:</strong> Designed dual-utility AI system, modified A* pathing, redesigned menus, created generic audio manager</li>
-          <li><strong>Whipslash:</strong> Led team of 10 as producer/lead programmer, implemented enemy AI, developed core mechanics</li>
-          <li><strong>Brain Powered Games Africa:</strong> Designed data collection system, rebuilt game suite, traveled to Uganda for playtesting</li>
+          <li><strong>Plunder Panic:</strong> Dual-utility AI, A* pathing, menu redesign, audio manager</li>
+          <li><strong>Whipslash:</strong> Producer + lead programmer, enemy AI, core mechanics</li>
+          <li><strong>Brain Powered Games Africa:</strong> Data collection system, traveled to Uganda for playtesting</li>
         </ul>
       </div>
     </div>
-
-    <!-- Education -->
     <div class="resume-section">
       <h3>Education</h3>
       <div class="resume-entry">
@@ -623,8 +655,6 @@
         <div class="meta">B.S. Computer Science · Minor in Game Design &amp; Development · GPA 3.82 · May 2020</div>
       </div>
     </div>
-
-    <!-- Skills -->
     <div class="resume-section">
       <h3>Skills</h3>
       <div class="skills-list">
@@ -634,71 +664,1007 @@
         <span>JavaScript</span><span>Data Analysis</span>
       </div>
     </div>
-
-    <!-- Interests -->
     <div class="resume-section">
       <h3>Interests</h3>
-      <p class="interests-text">Artificial Intelligence · Machine Learning · Systems Design · Tool Development · Psychology Behind Player Choice · Game Theory</p>
+      <p style="color:var(--text-muted);font-size:0.88rem;">Artificial Intelligence · Machine Learning · Systems Design · Tool Development · Psychology Behind Player Choice · Game Theory</p>
     </div>
   </div>
 </div>
 
 </main>
 
-<!-- ────── FOOTER ────── -->
-<footer>
+<!-- GAME HUD -->
+<div class="game-hud" id="game-hud">
+  <span class="hud-score" id="hud-score">SCORE: 000</span>
+  <span class="hud-sep">|</span>
+  <span class="hud-lives" id="hud-lives">♥ ♥ ♥</span>
+  <span class="hud-sep" id="hud-pwr-sep" style="display:none;">|</span>
+  <span id="hud-powerups" style="font-size:0.65rem;letter-spacing:0.1em;"></span>
+  <span class="hud-sep">|</span>
+  <span id="hud-hint" style="font-size:0.65rem;opacity:0.5;">MOVE CURSOR TO AIM · CLICK TO SHOOT</span>
+  <div id="hud-respawn">
+    <span class="game-over-label">INDUSTRY WINS</span>
+    <span class="hud-sep">|</span>
+    <button onclick="resetGame()">START NEXT PROJECT</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="hidden">
   <a href="mailto:george.a.schober@gmail.com">george.a.schober@gmail.com</a>
 </footer>
 
 <script>
-  const pages = ['home','cod','rockstar','plunderpanic','whipslash','resume'];
+// ─────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────
+const pages = ['home','cod','rockstar','plunderpanic','whipslash','resume'];
+function navigate(page) {
+  pages.forEach(p => document.getElementById('page-' + p).classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-work').classList.toggle('active', page !== 'resume');
+  document.getElementById('nav-resume').classList.toggle('active', page === 'resume');
+  window.location.hash = page === 'home' ? '' : page;
+  window.scrollTo({ top: 0, behavior: 'instant' });
 
-  function navigate(page) {
-    pages.forEach(p => {
-      document.getElementById('page-' + p).classList.remove('active');
+  const isHome = page === 'home';
+  document.getElementById('home-center').classList.toggle('hidden', !isHome);
+  document.querySelector('footer').classList.toggle('hidden', isHome);
+
+  // Reset home scroll to top when navigating back
+  if (isHome) {
+    const homeEl = document.getElementById('page-home');
+    homeEl.scrollTop = 0;
+  }
+
+  if (isHome) {
+    document.querySelectorAll('.project-card').forEach(c => {
+      c.style.animation = 'none';
+      c.offsetHeight;
+      c.style.animation = '';
     });
-    document.getElementById('page-' + page).classList.add('active');
+  }
+}
+window.addEventListener('DOMContentLoaded', () => {
+  const hash = window.location.hash.replace('#','');
+  navigate((hash && pages.includes(hash)) ? hash : 'home');
+});
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.replace('#','');
+  navigate((hash && pages.includes(hash)) ? hash : 'home');
+});
 
-    // Update nav active state
-    document.getElementById('nav-work').classList.toggle('active', page !== 'resume');
-    document.getElementById('nav-resume').classList.toggle('active', page === 'resume');
+// ─────────────────────────────────────────────
+// SPACE INVADERS GAME
+// ─────────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('game-canvas');
+  const ctx = canvas.getContext('2d');
 
-    // Update hash
-    window.location.hash = page === 'home' ? '' : page;
+  const WORDS = [
+    'LAYOFFS','CRUNCH','GAME CANCELLED','DELAYS',
+    'LEADERSHIP PIVOT','TEAM RESTRUCTURE','BUDGET CUTS',
+    'TEAM OUTSOURCED','STUDIO CLOSURE','FEATURE CREEP',
+    'OVER BUDGET','MISSED MILESTONE','PUBLISHER NOTES',
+    'ZERO-DAY VULNERABILITY',
+    'JANUARY GREEN LIGHT','APRIL GREEN LIGHT',
+    'JULY GREEN LIGHT','OCTOBER GREEN LIGHT',
+    'VERTICAL SLICE','OVERTIME','MERGE CONFLICT',
+    'PERFORMANCE REVIEWS','LEADERSHIP QUITS','LEAKED BUILD',
+    'DAY ONE PATCH','TRAILER DROP','METACRITIC SCORES',
+    'ALPHA MILESTONE',
+  ];
+  const WORD_COLORS = ['#ff5c57','#ff9f43','#ffd32a','#c9ff57','#48dbfb','#ff79c6','#bd93f9'];
 
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'instant' });
+  let W, H;
+  let mouseX = -999, mouseY = -999;
+  let bullets = [];
+  let words = [];
+  let particles = [];
+  let shockwaves = [];
+  let powerups = [];
+  let score = 0;
+  let highScore = parseInt(localStorage.getItem('gs_hiscore') || '0', 10);
+  let lives = 3;
+  let gameOver = false;
+  let lastWordTime = 0;
+  let wordInterval = 2800;
+  let lastPowerupTime = 0;
+  let powerupInterval = 14000; // ms between powerup spawns
+  let gameStarted = false;
+  let frameCount = 0;
 
-    // Re-trigger card animations on home
-    if (page === 'home') {
-      document.querySelectorAll('.project-card').forEach(c => {
-        c.style.animation = 'none';
-        c.offsetHeight; // trigger reflow
-        c.style.animation = '';
+  // ── POWERUP STATE ──
+  // All upgrades are permanent until game over
+  const player = {
+    fireRateLevel: 0,   // 0..3, each level reduces cooldown
+    coneShot: false,    // 3-shot cone
+    wingmen: 0,         // 0..2 wingmen flanking the ship
+  };
+  const BASE_FIRE_COOLDOWN = 240; // ms between shots — slower than before
+  function getFireCooldown() {
+    // -45ms per level, floor 100ms
+    return Math.max(100, BASE_FIRE_COOLDOWN - player.fireRateLevel * 45);
+  }
+
+  // Powerup definitions — industry-themed metaphors
+  const POWERUP_TYPES = [
+    { key: 'coffee', label: 'COFFEE',        color: '#c98a5b', glow: '#e8b58a' },
+    { key: 'redbull', label: 'RED BULL',     color: '#3da6ff', glow: '#9bd0ff' },
+    { key: 'espresso', label: 'ESPRESSO',    color: '#5a3520', glow: '#a87856' },
+    { key: 'heart', label: 'NEW FUNDING',    color: '#ff5c8a', glow: '#ffb3c8' },
+    { key: 'access', label: 'CLAUDE ACCESS', color: '#d97757', glow: '#f0a98a' },
+    { key: 'hire',  label: 'NEW HIRE',       color: '#bda2ff', glow: '#ddc8ff' },
+  ];
+
+  // Caffeine progression: each is a distinct powerup, only the next tier spawns
+  const CAFFEINE_TIERS = ['coffee', 'redbull', 'espresso'];
+
+  // ── STARS ──
+  let stars = [];
+  function initStars() {
+    stars = [];
+    // Three layers: distant (tiny, slow), mid, near (larger, faster)
+    const layers = [
+      { count: 180, minR: 0.3, maxR: 0.8,  minSpeed: 0.02, maxSpeed: 0.06, alpha: 0.35 },
+      { count: 90,  minR: 0.7, maxR: 1.4,  minSpeed: 0.08, maxSpeed: 0.18, alpha: 0.55 },
+      { count: 40,  minR: 1.2, maxR: 2.2,  minSpeed: 0.22, maxSpeed: 0.45, alpha: 0.75 },
+    ];
+    layers.forEach(l => {
+      for (let i = 0; i < l.count; i++) {
+        stars.push({
+          x: Math.random() * (W || window.innerWidth),
+          y: Math.random() * (H || window.innerHeight),
+          r: l.minR + Math.random() * (l.maxR - l.minR),
+          speed: l.minSpeed + Math.random() * (l.maxSpeed - l.minSpeed),
+          alpha: l.alpha * (0.7 + Math.random() * 0.3),
+          twinkleOffset: Math.random() * Math.PI * 2,
+          // distortion
+          dx: 0, dy: 0,
+        });
+      }
+    });
+  }
+
+  function updateHighScore() {
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem('gs_hiscore', highScore);
+    }
+    const s = String(highScore).padStart(5, '0');
+    document.getElementById('nav-score').textContent = 'HIGH SCORE: ' + s;
+  }
+
+  const ship = { x: 0, y: 0, width: 28, height: 16 };
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    ship.y = H - 80;
+    initStars();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  window.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    if (!gameStarted) gameStarted = true;
+  });
+
+  // ── FIRING ──
+  function fireOnce() {
+    if (gameOver) return;
+    const baseY = ship.y - ship.height / 2;
+    if (player.coneShot) {
+      // Center + two angled shots
+      bullets.push({ x: ship.x, y: baseY, vx: 0,  vy: -12, size: 3 });
+      bullets.push({ x: ship.x, y: baseY, vx: -2.4, vy: -11.5, size: 3 });
+      bullets.push({ x: ship.x, y: baseY, vx:  2.4, vy: -11.5, size: 3 });
+    } else {
+      bullets.push({ x: ship.x, y: baseY, vx: 0, vy: -12, size: 3 });
+    }
+    // Wingmen fire single straight shots regardless of cone upgrade
+    getWingmanPositions().forEach(p => {
+      bullets.push({ x: p.x, y: p.y - ship.height * 0.42, vx: 0, vy: -12, size: 2.5 });
+    });
+  }
+
+  function getWingmanPositions() {
+    const out = [];
+    const offset = ship.width * 1.3;
+    const back = ship.height * 0.5;
+    if (player.wingmen >= 1) out.push({ x: ship.x - offset, y: ship.y + back, side: -1 });
+    if (player.wingmen >= 2) out.push({ x: ship.x + offset, y: ship.y + back, side: 1 });
+    return out;
+  }
+
+  // Mouse fire — supports click, hold, and click-drag
+  let mouseHeld = false;
+  let lastFireTs = 0;
+  window.addEventListener('mousedown', e => {
+    if (gameOver) return;
+    mouseHeld = true;
+    if (performance.now() - lastFireTs > getFireCooldown()) {
+      fireOnce();
+      lastFireTs = performance.now();
+    }
+  });
+  window.addEventListener('mouseup', () => { mouseHeld = false; });
+  window.addEventListener('mouseleave', () => { mouseHeld = false; });
+  // Auto-fire while held — uses dynamic fire-rate cooldown
+  setInterval(() => {
+    if (mouseHeld && !gameOver && performance.now() - lastFireTs > getFireCooldown()) {
+      fireOnce();
+      lastFireTs = performance.now();
+    }
+  }, 30);
+
+  // ── MOBILE: touch follow + auto-fire ──
+  const isTouchDevice = () => window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  let autoFireInterval = null;
+
+  function startAutoFire() {
+    if (autoFireInterval) return;
+    autoFireInterval = setInterval(() => {
+      if (!gameOver && gameStarted) {
+        fireOnce();
+      }
+    }, 600);
+  }
+
+  window.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (!gameStarted) gameStarted = true;
+    const t = e.touches[0];
+    mouseX = t.clientX;
+    mouseY = t.clientY;
+    startAutoFire();
+    // Also fire immediately on tap
+    if (!gameOver) {
+      fireOnce();
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    mouseX = t.clientX;
+    mouseY = t.clientY;
+  }, { passive: false });
+
+  window.addEventListener('touchend', e => {
+    // Keep auto-fire going; stop only on game over (handled in resetGame)
+  });
+
+  // ── SHOCKWAVE on destroy ──
+  function spawnShockwave(x, y, color) {
+    shockwaves.push({ x, y, r: 0, maxR: 220, life: 1, color });
+  }
+
+  function updateShockwaves() {
+    shockwaves.forEach(sw => {
+      const progress = 1 - sw.life;
+      sw.r = sw.maxR * progress;
+      sw.life -= 0.028;
+
+      // Distort nearby stars
+      stars.forEach(s => {
+        const dx = s.x - sw.x;
+        const dy = s.y - sw.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        // Ring of influence slightly ahead of shockwave radius
+        const influence = sw.r + 18;
+        if (dist < influence && dist > sw.r - 35) {
+          const force = (1 - Math.abs(dist - sw.r) / 35) * 6 * sw.life;
+          s.dx += (dx / dist) * force;
+          s.dy += (dy / dist) * force;
+        }
+      });
+    });
+    shockwaves = shockwaves.filter(sw => sw.life > 0);
+  }
+
+  function drawShockwaves() {
+    shockwaves.forEach(sw => {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+      ctx.strokeStyle = sw.color;
+      ctx.lineWidth = 2.5 * sw.life;
+      ctx.globalAlpha = sw.life * 0.7;
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = sw.color;
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  // ── STARS draw ──
+  function drawStars() {
+    stars.forEach(s => {
+      // Drift stars downward (parallax illusion)
+      s.y += s.speed;
+      if (s.y > H) { s.y = -2; s.x = Math.random() * W; }
+
+      // Apply distortion
+      s.x += s.dx;
+      s.y += s.dy;
+      s.dx *= 0.88;
+      s.dy *= 0.88;
+
+      // Twinkle
+      const twinkle = 0.75 + 0.25 * Math.sin(frameCount * 0.03 + s.twinkleOffset);
+      ctx.save();
+      ctx.globalAlpha = s.alpha * twinkle;
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowBlur = s.r > 1.5 ? 4 : 0;
+      ctx.shadowColor = '#aaccff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
+  // ── Occasional nebula wisps ──
+  let nebulae = [];
+  function initNebulae() {
+    nebulae = [];
+    for (let i = 0; i < 4; i++) {
+      nebulae.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        rx: 120 + Math.random() * 200,
+        ry: 60 + Math.random() * 120,
+        hue: [200, 260, 180, 300][i],
+        alpha: 0.018 + Math.random() * 0.022,
+      });
+    }
+  }
+  function drawNebulae() {
+    nebulae.forEach(n => {
+      ctx.save();
+      const grd = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.rx);
+      grd.addColorStop(0, `hsla(${n.hue},60%,55%,${n.alpha})`);
+      grd.addColorStop(1, `hsla(${n.hue},60%,55%,0)`);
+      ctx.scale(1, n.ry / n.rx);
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y * (n.rx / n.ry), n.rx, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
+  // ── POWERUPS ──
+  function spawnPowerup() {
+    const fullyMaxed = player.fireRateLevel >= 3 && player.coneShot && lives >= 6 && player.wingmen >= 2;
+    if (fullyMaxed) return;
+    const pool = POWERUP_TYPES.filter(t => {
+      // Only the next caffeine tier spawns at a time
+      const tierIdx = CAFFEINE_TIERS.indexOf(t.key);
+      if (tierIdx >= 0) return tierIdx === player.fireRateLevel;
+      if (t.key === 'access') return !player.coneShot;
+      if (t.key === 'heart') return lives < 6;
+      if (t.key === 'hire') return player.wingmen < 2;
+      return true;
+    });
+    if (!pool.length) return;
+    const type = pool[Math.floor(Math.random() * pool.length)];
+    const r = 22;
+    const x = r + 20 + Math.random() * (W - r * 2 - 40);
+    powerups.push({
+      type: type.key, label: type.label, color: type.color, glow: type.glow,
+      x, y: -r, vy: 0.55 + Math.random() * 0.25, r,
+      hits: 0, hitFlash: 0, pulse: Math.random() * Math.PI * 2,
+    });
+  }
+
+  // Each powerup type has an icon drawn inside the orb
+  function drawPowerupIcon(type, x, y, size, orbColor) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#0a0a0f';
+    ctx.strokeStyle = '#0a0a0f';
+    ctx.lineWidth = Math.max(1.5, size * 0.08);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const s = size;
+    if (type === 'coffee') {
+      // Coffee mug with steam
+      const mugW = s * 0.7, mugH = s * 0.65;
+      const mx = -mugW / 2, my = -mugH / 2 + s * 0.1;
+      // Steam wisps
+      ctx.lineWidth = Math.max(1.4, s * 0.07);
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.15, -s * 0.5);
+      ctx.bezierCurveTo(-s * 0.05, -s * 0.65, -s * 0.25, -s * 0.7, -s * 0.15, -s * 0.85);
+      ctx.moveTo(s * 0.15, -s * 0.5);
+      ctx.bezierCurveTo(s * 0.25, -s * 0.65, s * 0.05, -s * 0.7, s * 0.15, -s * 0.85);
+      ctx.stroke();
+      // Mug body (rounded rect)
+      ctx.beginPath();
+      const r2 = s * 0.08;
+      ctx.moveTo(mx + r2, my);
+      ctx.lineTo(mx + mugW - r2, my);
+      ctx.quadraticCurveTo(mx + mugW, my, mx + mugW, my + r2);
+      ctx.lineTo(mx + mugW, my + mugH - r2 * 2);
+      ctx.quadraticCurveTo(mx + mugW, my + mugH, mx + mugW - r2 * 2, my + mugH);
+      ctx.lineTo(mx + r2 * 2, my + mugH);
+      ctx.quadraticCurveTo(mx, my + mugH, mx, my + mugH - r2 * 2);
+      ctx.lineTo(mx, my + r2);
+      ctx.quadraticCurveTo(mx, my, mx + r2, my);
+      ctx.closePath();
+      ctx.fill();
+      // Handle
+      ctx.lineWidth = Math.max(1.6, s * 0.08);
+      ctx.beginPath();
+      ctx.arc(mx + mugW + s * 0.04, my + mugH * 0.45, s * 0.16, -Math.PI / 2.2, Math.PI / 2.2);
+      ctx.stroke();
+    } else if (type === 'redbull') {
+      // Energy drink can with lightning bolt cut-out
+      const cw = s * 0.55, ch = s * 1.1;
+      const cx = -cw / 2, cy = -ch / 2;
+      const rr = s * 0.07;
+      ctx.beginPath();
+      ctx.moveTo(cx + rr, cy);
+      ctx.lineTo(cx + cw - rr, cy);
+      ctx.quadraticCurveTo(cx + cw, cy, cx + cw, cy + rr);
+      ctx.lineTo(cx + cw, cy + ch - rr);
+      ctx.quadraticCurveTo(cx + cw, cy + ch, cx + cw - rr, cy + ch);
+      ctx.lineTo(cx + rr, cy + ch);
+      ctx.quadraticCurveTo(cx, cy + ch, cx, cy + ch - rr);
+      ctx.lineTo(cx, cy + rr);
+      ctx.quadraticCurveTo(cx, cy, cx + rr, cy);
+      ctx.closePath();
+      ctx.fill();
+      // Top tab line in orb color
+      ctx.strokeStyle = orbColor;
+      ctx.lineWidth = Math.max(2, s * 0.07);
+      ctx.beginPath();
+      ctx.moveTo(cx + s * 0.04, cy + s * 0.14);
+      ctx.lineTo(cx + cw - s * 0.04, cy + s * 0.14);
+      ctx.stroke();
+      // Lightning bolt cut-out (orb color)
+      ctx.fillStyle = orbColor;
+      ctx.beginPath();
+      ctx.moveTo(s * 0.06, -s * 0.18);
+      ctx.lineTo(-s * 0.13, s * 0.06);
+      ctx.lineTo(-s * 0.02, s * 0.06);
+      ctx.lineTo(-s * 0.06, s * 0.36);
+      ctx.lineTo(s * 0.13, s * 0.06);
+      ctx.lineTo(s * 0.02, s * 0.06);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#0a0a0f';
+      ctx.strokeStyle = '#0a0a0f';
+    } else if (type === 'tokens') {
+      // Dollar sign
+      ctx.font = 'bold ' + (s * 1.1) + 'px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('$', 0, s * 0.04);
+    } else if (type === 'heart') {
+      // Heart (New Funding) — two arcs + V point
+      const hs = s * 0.5;
+      ctx.beginPath();
+      ctx.arc(-hs * 0.5, -hs * 0.15, hs * 0.55, Math.PI, Math.PI * 2 + 0.2);
+      ctx.arc( hs * 0.5, -hs * 0.15, hs * 0.55, -0.2 - Math.PI, 0);
+      ctx.lineTo(0, hs * 0.95);
+      ctx.closePath();
+      ctx.fill();
+    } else if (type === 'espresso') {
+      // Espresso shot — small demitasse cup with intense steam
+      ctx.lineWidth = Math.max(1.4, s * 0.07);
+      // Three short, sharp steam wisps
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.18, -s * 0.42);
+      ctx.bezierCurveTo(-s * 0.05, -s * 0.55, -s * 0.3, -s * 0.62, -s * 0.18, -s * 0.82);
+      ctx.moveTo(0, -s * 0.42);
+      ctx.bezierCurveTo(s * 0.12, -s * 0.58, -s * 0.12, -s * 0.65, 0, -s * 0.86);
+      ctx.moveTo(s * 0.18, -s * 0.42);
+      ctx.bezierCurveTo(s * 0.3, -s * 0.55, s * 0.05, -s * 0.62, s * 0.18, -s * 0.82);
+      ctx.stroke();
+      // Demitasse cup — short, wide, on saucer
+      const cupW = s * 0.6, cupH = s * 0.42;
+      const cx = -cupW / 2, cy = -cupH / 2 + s * 0.12;
+      const rr = s * 0.06;
+      ctx.beginPath();
+      ctx.moveTo(cx + rr, cy);
+      ctx.lineTo(cx + cupW - rr, cy);
+      ctx.quadraticCurveTo(cx + cupW, cy, cx + cupW, cy + rr);
+      ctx.lineTo(cx + cupW - rr * 0.3, cy + cupH - rr);
+      ctx.quadraticCurveTo(cx + cupW - rr * 0.6, cy + cupH, cx + cupW - rr * 1.5, cy + cupH);
+      ctx.lineTo(cx + rr * 1.5, cy + cupH);
+      ctx.quadraticCurveTo(cx + rr * 0.6, cy + cupH, cx + rr * 0.3, cy + cupH - rr);
+      ctx.lineTo(cx, cy + rr);
+      ctx.quadraticCurveTo(cx, cy, cx + rr, cy);
+      ctx.closePath();
+      ctx.fill();
+      // Saucer — thin ellipse below
+      ctx.beginPath();
+      ctx.ellipse(0, cy + cupH + s * 0.08, s * 0.5, s * 0.07, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Crema — light line on coffee surface in glow color
+      ctx.strokeStyle = orbColor;
+      ctx.lineWidth = Math.max(1.5, s * 0.06);
+      ctx.beginPath();
+      ctx.moveTo(cx + s * 0.07, cy + s * 0.07);
+      ctx.lineTo(cx + cupW - s * 0.07, cy + s * 0.07);
+      ctx.stroke();
+      ctx.strokeStyle = '#0a0a0f';
+    } else if (type === 'access') {
+      // Dollar sign
+      ctx.font = 'bold ' + (s * 1.1) + 'px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('$', 0, s * 0.04);
+    } else if (type === 'hire') {
+      // Person silhouette + plus sign (New Hire)
+      // Head
+      ctx.beginPath();
+      ctx.arc(-s * 0.1, -s * 0.32, s * 0.18, 0, Math.PI * 2);
+      ctx.fill();
+      // Body / shoulders (rounded trapezoid)
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.45, s * 0.5);
+      ctx.lineTo(-s * 0.45, s * 0.18);
+      ctx.bezierCurveTo(-s * 0.45, -s * 0.05, s * 0.25, -s * 0.05, s * 0.25, s * 0.18);
+      ctx.lineTo(s * 0.25, s * 0.5);
+      ctx.closePath();
+      ctx.fill();
+      // Plus sign in upper right
+      const px = s * 0.42, py = -s * 0.42, pl = s * 0.16;
+      ctx.lineWidth = Math.max(2, s * 0.13);
+      ctx.beginPath();
+      ctx.moveTo(px - pl, py); ctx.lineTo(px + pl, py);
+      ctx.moveTo(px, py - pl); ctx.lineTo(px, py + pl);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawPowerup(p) {
+    if (p.hitFlash > 0) p.hitFlash -= 0.07;
+    p.pulse += 0.08;
+    const pulseScale = 1 + Math.sin(p.pulse) * 0.06;
+    const r = p.r * pulseScale;
+    ctx.save();
+    // Outer glow
+    const grd = ctx.createRadialGradient(p.x, p.y, r * 0.3, p.x, p.y, r * 2.4);
+    grd.addColorStop(0, p.glow);
+    grd.addColorStop(0.4, p.color + '88');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r * 2.4, 0, Math.PI * 2);
+    ctx.fill();
+    // Inner orb
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 22;
+    ctx.shadowColor = p.color;
+    ctx.fillStyle = p.hitFlash > 0 ? '#ffffff' : p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r * 0.95, 0, Math.PI * 2);
+    ctx.fill();
+    // Ring outline
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#0a0a0f';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Icon inside orb
+    drawPowerupIcon(p.type, p.x, p.y, r * 1.0, p.hitFlash > 0 ? '#ffffff' : p.color);
+    // Label BELOW the orb
+    ctx.fillStyle = p.glow;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = p.color;
+    ctx.font = 'bold 13px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(p.label, p.x, p.y + r + 6);
+    ctx.shadowBlur = 0;
+    // Hit pips below the label
+    const pipGap = 9;
+    const startX = p.x - pipGap;
+    const pipY = p.y + r + 24;
+    for (let i = 0; i < 3; i++) {
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = i < p.hits ? p.glow : 'rgba(255,255,255,0.2)';
+      ctx.beginPath();
+      ctx.arc(startX + i * pipGap, pipY, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+    ctx.restore();
+  }
+
+  function applyPowerup(type) {
+    if (CAFFEINE_TIERS.indexOf(type) >= 0) player.fireRateLevel = Math.min(3, player.fireRateLevel + 1);
+    if (type === 'access') player.coneShot = true;
+    if (type === 'heart') { lives = Math.min(6, lives + 1); updateLives(); }
+    if (type === 'hire') player.wingmen = Math.min(2, player.wingmen + 1);
+    updatePowerupHUD();
+  }
+
+  function updatePowerupHUD() {
+    const el = document.getElementById('hud-powerups');
+    const sep = document.getElementById('hud-pwr-sep');
+    if (!el) return;
+    const parts = [];
+    if (player.fireRateLevel > 0) {
+      const labels = ['COFFEE', 'RED BULL', 'ESPRESSO'];
+      const cl = labels[Math.min(player.fireRateLevel, labels.length) - 1];
+      parts.push('<span style="color:#ffcc33">' + cl + '</span>');
+    }
+    if (player.coneShot) parts.push('<span style="color:#d97757">CLAUDE ACCESS</span>');
+    if (player.wingmen > 0) parts.push('<span style="color:#bda2ff">TEAM SIZE: ' + (player.wingmen + 1) + '</span>');
+    el.innerHTML = parts.join(' · ');
+    if (sep) sep.style.display = parts.length ? '' : 'none';
+  }
+
+  function drawShield() { /* removed: shield powerup replaced with +1 HP */ }
+
+  function spawnWord(gameOverMode) {
+    const text = WORDS[Math.floor(Math.random() * WORDS.length)];
+    const color = WORD_COLORS[Math.floor(Math.random() * WORD_COLORS.length)];
+    const fontSize = 14 + Math.floor(Math.random() * 6);
+    ctx.font = `bold ${fontSize}px "Courier New", monospace`;
+    const tw = ctx.measureText(text).width;
+
+    let x;
+    if (gameOverMode) {
+      // Spawn only in left or right margins (~200px wide each)
+      const margin = Math.min(200, (W - 600) / 2);
+      const side = Math.random() < 0.5 ? 'left' : 'right';
+      if (side === 'left') {
+        x = Math.random() * Math.max(20, margin - tw - 10) + 10;
+      } else {
+        x = W - margin + Math.random() * Math.max(10, margin - tw - 10);
+      }
+    } else {
+      x = Math.random() * (W - tw - 40) + 20;
+    }
+
+    const speed = (0.35 + Math.random() * 0.55) * (1 + Math.min(score / 800, 1.2));
+    // Multi-HP chance ramps with score: at 0 = 1HP only, at 1500+ = original distribution + bonus
+    const lengthBonus = text.length > 14 ? 3 : text.length > 9 ? 2 : 1;
+    const scoreBonus = Math.random() < Math.min(score / 1500, 0.55) ? 1 : 0;
+    const hp = Math.min(3, lengthBonus + scoreBonus);
+    words.push({ text, color, x, y: -20, vy: speed, fontSize, width: tw, hp, maxHp: hp, hitFlash: 0, shakeX: 0, shakeY: 0 });
+  }
+
+  function spawnParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 3.5;
+      particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        decay: 0.022 + Math.random() * 0.028,
+        size: 1.5 + Math.random() * 2.5,
+        color
       });
     }
   }
 
-  function toggleMobile() {
-    document.getElementById('mobile-menu').classList.toggle('open');
-  }
-  function closeMobile() {
-    document.getElementById('mobile-menu').classList.remove('open');
+  function drawShip(x, y, scale) {
+    scale = scale || 1;
+    const w = ship.width * scale, h = ship.height * scale;
+    ctx.save();
+    ctx.translate(x, y);
+    const glowRadius = (10 + Math.sin(frameCount * 0.1) * 3) * scale;
+    const grd = ctx.createRadialGradient(0, h/2+2, 0, 0, h/2+2, glowRadius);
+    grd.addColorStop(0, 'rgba(201,255,87,0.3)');
+    grd.addColorStop(1, 'rgba(201,255,87,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(0, h/2+2, glowRadius, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#c9ff57';
+    ctx.shadowBlur = 6 * scale;
+    ctx.shadowColor = '#c9ff57';
+    ctx.beginPath();
+    ctx.moveTo(0, -h/2);
+    ctx.lineTo(-w/2, h/2);
+    ctx.lineTo(-w/4, h/3);
+    ctx.lineTo(0, h/2-2);
+    ctx.lineTo(w/4, h/3);
+    ctx.lineTo(w/2, h/2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#0a0a0f';
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc(0, 0, 3.5 * scale, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(201,255,87,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-w/4, h/3); ctx.lineTo(-w/2+4, h/2-2);
+    ctx.moveTo(w/4, h/3);  ctx.lineTo(w/2-4, h/2-2);
+    ctx.stroke();
+    ctx.restore();
   }
 
-  // Handle initial hash
+  function drawWingmen() {
+    getWingmanPositions().forEach(p => drawShip(p.x, p.y, 0.7));
+  }
+
+  function drawBullet(b) {
+    ctx.save();
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#c9ff57';
+    ctx.fillStyle = '#c9ff57';
+    ctx.beginPath();
+    ctx.rect(b.x - b.size/2, b.y - b.size, b.size, b.size * 4);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawWord(w) {
+    // Decay shake & flash
+    w.shakeX *= 0.75;
+    w.shakeY *= 0.75;
+    if (w.hitFlash > 0) w.hitFlash -= 0.08;
+
+    const sx = w.x + w.shakeX;
+    const sy = w.y + w.shakeY;
+    const flashT = Math.max(0, w.hitFlash);
+    const drawColor = flashT > 0
+      ? `rgb(255,${Math.floor(80*(1-flashT))},${Math.floor(60*(1-flashT))})`
+      : w.color;
+
+    ctx.save();
+    ctx.font = `bold ${w.fontSize}px "Courier New", monospace`;
+    ctx.shadowBlur = flashT > 0 ? 18 : 8;
+    ctx.shadowColor = flashT > 0 ? '#ff3030' : w.color;
+    ctx.fillStyle = drawColor;
+    ctx.fillText(w.text, sx, sy);
+
+    // Underline
+    ctx.strokeStyle = drawColor;
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy + 3);
+    ctx.lineTo(sx + w.width, sy + 3);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // HP pips for multi-hit words
+    if (w.maxHp > 1) {
+      const pipGap = 7;
+      const startX = sx + w.width / 2 - ((w.maxHp - 1) * pipGap) / 2;
+      for (let i = 0; i < w.maxHp; i++) {
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = i < w.hp ? w.color : '#2a2a3a';
+        ctx.shadowBlur = i < w.hp ? 4 : 0;
+        ctx.shadowColor = w.color;
+        ctx.beginPath();
+        ctx.arc(startX + i * pipGap, sy + 10, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawParticle(p) {
+    ctx.save();
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function updateScore(n) {
+    score += n;
+    document.getElementById('hud-score').textContent = 'SCORE: ' + String(score).padStart(5,'0');
+    updateHighScore();
+  }
+
+  function updateLives() {
+    // Render up to `Math.max(3, lives)` slots, filled hearts for current, empty for missing
+    const slots = Math.max(3, lives);
+    let out = '';
+    for (let i = 0; i < slots; i++) out += (i < lives ? '♥' : '♡') + ' ';
+    document.getElementById('hud-lives').textContent = out.trim();
+  }
+
+  function showGameOver() {
+    gameOver = true;
+    updateHighScore();
+    if (autoFireInterval) { clearInterval(autoFireInterval); autoFireInterval = null; }
+    const respawn = document.getElementById('hud-respawn');
+    const hint = document.getElementById('hud-hint');
+    const hudLives = document.getElementById('hud-lives');
+    if (hint) hint.style.display = 'none';
+    if (hudLives) hudLives.style.display = 'none';
+    respawn.style.display = 'flex';
+  }
+
+  window.resetGame = function() {
+    score = 0; lives = 3; gameOver = false;
+    bullets = []; words = []; particles = []; shockwaves = []; powerups = [];
+    lastWordTime = 0; wordInterval = 2800;
+    lastPowerupTime = 0;
+    player.fireRateLevel = 0; player.coneShot = false; player.wingmen = 0;
+    updatePowerupHUD();
+    updateScore(0); updateLives();
+    const respawn = document.getElementById('hud-respawn');
+    const hint = document.getElementById('hud-hint');
+    const hudLives = document.getElementById('hud-lives');
+    respawn.style.display = 'none';
+    if (hint) hint.style.display = '';
+    if (hudLives) hudLives.style.display = '';
+    // Restart auto-fire on mobile
+    if (isTouchDevice()) {
+      if (autoFireInterval) { clearInterval(autoFireInterval); autoFireInterval = null; }
+      startAutoFire();
+    }
+  };
+
+  setTimeout(() => {
+    const hint = document.getElementById('hud-hint');
+    if (hint) hint.style.opacity = '0';
+  }, 5000);
+
+  // Set hint text based on device type
   window.addEventListener('DOMContentLoaded', () => {
-    const hash = window.location.hash.replace('#','');
-    if (hash && pages.includes(hash)) navigate(hash);
-    else navigate('home');
+    const hint = document.getElementById('hud-hint');
+    if (hint && isTouchDevice()) {
+      hint.textContent = 'TOUCH TO AIM · AUTO-FIRES';
+    }
   });
 
-  // Handle back/forward
-  window.addEventListener('hashchange', () => {
-    const hash = window.location.hash.replace('#','');
-    if (hash && pages.includes(hash)) navigate(hash);
-    else navigate('home');
-  });
+  initNebulae();
+
+  function loop(ts) {
+    requestAnimationFrame(loop);
+    frameCount++;
+
+    // Space background
+    ctx.fillStyle = '#0a0a0f';
+    ctx.fillRect(0, 0, W, H);
+    drawNebulae();
+    drawStars();
+
+    if (!gameStarted) {
+      ship.x = W / 2;
+      drawShip(ship.x, ship.y);
+      return;
+    }
+
+    updateShockwaves();
+    drawShockwaves();
+
+    if (gameOver) {
+      // Let existing words keep falling, no new spawns
+      words.forEach(w => { w.y += w.vy; });
+      words = words.filter(w => w.y < H + 40);
+      particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.life -= p.decay; });
+      particles = particles.filter(p => p.life > 0);
+      updateShockwaves();
+      drawShockwaves();
+      words.forEach(drawWord);
+      powerups.forEach(p => { p.y += p.vy; });
+      powerups = powerups.filter(p => p.y < H + 40);
+      powerups.forEach(drawPowerup);
+      particles.forEach(drawParticle);
+      drawWingmen();
+      drawShip(ship.x, ship.y);
+      return;
+    }
+
+    // Ship follows cursor (clamp accounts for wingmen flanking)
+    const flankPad = player.wingmen > 0 ? ship.width * 1.6 : ship.width / 2;
+    const targetX = Math.max(flankPad, Math.min(W - flankPad, mouseX));
+    ship.x += (targetX - ship.x) * 0.14;
+
+    // Spawn words
+    if (ts - lastWordTime > wordInterval) {
+      spawnWord(false);
+      lastWordTime = ts;
+      wordInterval = Math.max(450, wordInterval - 55);
+    }
+
+    // Spawn powerups
+    if (ts - lastPowerupTime > powerupInterval && score > 100) {
+      spawnPowerup();
+      lastPowerupTime = ts;
+    }
+
+    // Move bullets & words
+    bullets.forEach(b => { b.y += b.vy; b.x += (b.vx || 0); });
+    bullets = bullets.filter(b => b.y > -20 && b.x > -20 && b.x < W + 20);
+    words.forEach(w => { w.y += w.vy; });
+    powerups.forEach(p => { p.y += p.vy; });
+
+    // Collisions
+    bullets.forEach(b => {
+      words.forEach(w => {
+        if (b.x >= w.x - 4 && b.x <= w.x + w.width + 4 &&
+            b.y >= w.y - w.fontSize && b.y <= w.y + 4) {
+          b.dead = true;
+          w.hp--;
+          // Shake & flash on hit
+          w.hitFlash = 1;
+          w.shakeX = (Math.random() - 0.5) * 10;
+          w.shakeY = (Math.random() - 0.5) * 6;
+          if (w.hp <= 0) {
+            w.hit = true;
+            const cx = w.x + w.width / 2;
+            const cy = w.y - w.fontSize / 2;
+            spawnParticles(cx, cy, w.color, 16);
+            spawnShockwave(cx, cy, w.color);
+            updateScore(10 * w.text.length * w.maxHp);
+          } else {
+            // Partial hit — small particles, no shockwave
+            spawnParticles(w.x + w.width / 2, w.y - w.fontSize / 2, '#ff5c57', 5);
+          }
+        }
+      });
+      // Bullet vs powerup
+      powerups.forEach(p => {
+        if (b.dead) return;
+        const dx = b.x - p.x, dy = b.y - p.y;
+        if (dx * dx + dy * dy <= p.r * p.r) {
+          b.dead = true;
+          p.hits++;
+          p.hitFlash = 1;
+          spawnParticles(p.x, p.y, p.color, 6);
+          if (p.hits >= 3) {
+            p.collected = true;
+            spawnParticles(p.x, p.y, p.glow, 24);
+            spawnShockwave(p.x, p.y, p.color);
+            applyPowerup(p.type);
+            updateScore(50);
+          }
+        }
+      });
+    });
+    bullets = bullets.filter(b => !b.dead);
+    words = words.filter(w => {
+      if (w.hit) return false;
+      if (w.y > H - 40) {
+        lives--;
+        updateLives();
+        const cx = w.x + w.width / 2;
+        spawnParticles(cx, H - 60, '#ff5c57', 12);
+        spawnShockwave(cx, H - 60, '#ff5c57');
+        if (lives <= 0) showGameOver();
+        return false;
+      }
+      return true;
+    });
+    powerups = powerups.filter(p => !p.collected && p.y < H + 40);
+
+    // Update particles
+    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.life -= p.decay; });
+    particles = particles.filter(p => p.life > 0);
+
+    // Draw
+    words.forEach(drawWord);
+    powerups.forEach(drawPowerup);
+    bullets.forEach(drawBullet);
+    particles.forEach(drawParticle);
+    drawShield();
+    drawWingmen();
+    drawShip(ship.x, ship.y);
+  }
+
+  requestAnimationFrame(loop);
+  updateLives();
+  updateHighScore();
+})();
 </script>
 
 </body>
