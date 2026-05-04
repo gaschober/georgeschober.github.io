@@ -124,18 +124,21 @@
   #page-plunderpanic .detail,
   #page-whipslash .detail,
   .resume-page {
-    background: rgba(10,10,15,0.82);
+    background: rgba(10,10,15,0.75);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     border-radius: 12px;
     margin: 1rem auto;
   }
 
-  .page { display: none; animation: fadeIn 0.35s ease; }
-  .page.active { display: block; }
+  .page { display: none; opacity: 0; }
+  .page.active {
+    display: block;
+    animation: fadeIn 0.7s linear forwards;
+  }
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
 
   /* ── HOME — Layout D (revised) ── */
@@ -234,9 +237,6 @@
   .project-row.hidden { display: none; }
   .home-center.hidden { display: none; }
 
-  /* Footer hidden on home page */
-  footer.hidden { display: none; }
-
   /* ── DETAIL PAGES ── */
   .detail {
     max-width: var(--max-width);
@@ -329,6 +329,15 @@
     letter-spacing: -0.04em; margin-bottom: 2.5rem;
     display: flex; align-items: center; justify-content: space-between;
   }
+  .resume-page .page-title-left {
+    display: flex; align-items: center; gap: 0.85rem;
+  }
+  .resume-page .resume-avatar {
+    width: 128px; height: 128px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
   .resume-page .download-btn {
     display: inline-flex; align-items: center; gap: 0.4rem;
     background: var(--accent); color: var(--bg);
@@ -380,7 +389,8 @@
     bottom: 1.5rem; left: 50%;
     transform: translateX(-50%);
     z-index: 50;
-    display: flex; align-items: center; gap: 1.5rem;
+    display: none;
+    align-items: center; gap: 1.5rem;
     background: rgba(10,10,15,0.75);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -392,26 +402,28 @@
     color: var(--text-muted);
     pointer-events: none;
     transition: opacity 0.5s;
+    white-space: nowrap;
   }
+  .game-hud.visible { display: flex; }
+  .game-hud.behind-content { z-index: 5; }
+  .game-hud > span { white-space: nowrap; flex-shrink: 0; }
   .game-hud #hud-respawn {
     pointer-events: auto;
   }
   .game-hud .hud-score { color: var(--accent); }
   .game-hud .hud-lives { color: #ff5c57; letter-spacing: 0.1em; }
   .game-hud .hud-sep { opacity: 0.3; }
-
-  /* Footer */
-  footer {
-    position: relative; z-index: 10;
-    text-align: center;
-    padding: 1.75rem 1rem;
-    border-top: 1px solid var(--border);
-    font-size: 0.78rem; color: var(--text-muted);
-    pointer-events: auto;
-    background: transparent;
+  @media (max-width: 600px) {
+    .game-hud {
+      gap: 0.75rem;
+      padding: 0.4rem 0.85rem;
+      bottom: 1rem;
+      font-size: 0.7rem;
+    }
+    .game-hud #hud-hint, .game-hud #hud-hint-sep { display: none; }
+    .game-hud #hud-powerups, .game-hud #hud-pwr-sep { display: none !important; }
   }
-  footer a { color: var(--accent); text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
+
 
   /* Respawn button in HUD */
   #hud-respawn {
@@ -612,7 +624,10 @@
 <div class="page" id="page-resume">
   <div class="resume-page">
     <div class="page-title">
-      Resume
+      <div class="page-title-left">
+        <img class="resume-avatar" src="images/avatar.png" alt="George Schober">
+        Resume
+      </div>
       <a class="download-btn" href="GeorgeSchoberResume.pdf" target="_blank" rel="noopener">↓ PDF</a>
     </div>
     <div class="resume-section">
@@ -680,7 +695,7 @@
   <span class="hud-lives" id="hud-lives">♥ ♥ ♥</span>
   <span class="hud-sep" id="hud-pwr-sep" style="display:none;">|</span>
   <span id="hud-powerups" style="font-size:0.65rem;letter-spacing:0.1em;"></span>
-  <span class="hud-sep">|</span>
+  <span class="hud-sep" id="hud-hint-sep">|</span>
   <span id="hud-hint" style="font-size:0.65rem;opacity:0.5;">MOVE CURSOR TO AIM · CLICK TO SHOOT</span>
   <div id="hud-respawn">
     <span class="game-over-label">INDUSTRY WINS</span>
@@ -688,11 +703,6 @@
     <button onclick="resetGame()">START NEXT PROJECT</button>
   </div>
 </div>
-
-<!-- FOOTER -->
-<footer class="hidden">
-  <a href="mailto:george.a.schober@gmail.com">george.a.schober@gmail.com</a>
-</footer>
 
 <script>
 // ─────────────────────────────────────────────
@@ -709,7 +719,7 @@ function navigate(page) {
 
   const isHome = page === 'home';
   document.getElementById('home-center').classList.toggle('hidden', !isHome);
-  document.querySelector('footer').classList.toggle('hidden', isHome);
+  document.getElementById('game-hud').classList.toggle('behind-content', !isHome);
 
   // Reset home scroll to top when navigating back
   if (isHome) {
@@ -849,7 +859,7 @@ window.addEventListener('hashchange', () => {
   window.addEventListener('mousemove', e => {
     mouseX = e.clientX;
     mouseY = e.clientY;
-    if (!gameStarted) gameStarted = true;
+    if (!gameStarted && mobileUnlocked) gameStarted = true;
   });
 
   // ── FIRING ──
@@ -903,6 +913,26 @@ window.addEventListener('hashchange', () => {
   // ── MOBILE: touch follow + auto-fire ──
   const isTouchDevice = () => window.matchMedia('(hover: none) and (pointer: coarse)').matches;
   let autoFireInterval = null;
+  // On mobile, the game stays dormant until the user scrolls the home page
+  // to the bottom — that's the deliberate "I want to play" signal.
+  let mobileUnlocked = !isTouchDevice();
+
+  const homeEl = document.getElementById('page-home');
+  if (homeEl) {
+    homeEl.addEventListener('scroll', () => {
+      if (mobileUnlocked) return;
+      if (homeEl.scrollTop + homeEl.clientHeight >= homeEl.scrollHeight - 40) {
+        mobileUnlocked = true;
+        // Reaching the bottom on mobile is itself the start signal — no tap needed.
+        if (isTouchDevice()) {
+          mouseX = W / 2;
+          mouseY = ship.y;
+          gameStarted = true;
+          startAutoFire();
+        }
+      }
+    }, { passive: true });
+  }
 
   function startAutoFire() {
     if (autoFireInterval) return;
@@ -913,20 +943,30 @@ window.addEventListener('hashchange', () => {
     }, 600);
   }
 
+  // Only treat a touch as game input when it lands on empty space —
+  // otherwise preventDefault() blocks taps on cards/links and page scroll.
+  function isGameTouch(e) {
+    const t = e.target;
+    return t === document.body || t === document.documentElement;
+  }
+
   window.addEventListener('touchstart', e => {
+    if (!isGameTouch(e)) return;
+    if (!mobileUnlocked) return;
     e.preventDefault();
     if (!gameStarted) gameStarted = true;
     const t = e.touches[0];
     mouseX = t.clientX;
     mouseY = t.clientY;
     startAutoFire();
-    // Also fire immediately on tap
     if (!gameOver) {
       fireOnce();
     }
   }, { passive: false });
 
   window.addEventListener('touchmove', e => {
+    if (!isGameTouch(e)) return;
+    if (!mobileUnlocked) return;
     e.preventDefault();
     const t = e.touches[0];
     mouseX = t.clientX;
@@ -1542,6 +1582,8 @@ window.addEventListener('hashchange', () => {
       drawShip(ship.x, ship.y);
       return;
     }
+
+    document.getElementById('game-hud').classList.add('visible');
 
     updateShockwaves();
     drawShockwaves();
