@@ -317,6 +317,29 @@
   }
   .detail .ext-link:hover { border-color: var(--accent); }
 
+  .detail .unlock-btn {
+    display: inline-flex; align-items: center;
+    gap: 0.4rem;
+    background: var(--accent); color: var(--bg);
+    font-family: var(--font-display);
+    font-size: 0.85rem; font-weight: 700;
+    padding: 0.7rem 1.25rem; border-radius: 6px;
+    border: none;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 2rem;
+    transition: opacity var(--transition), transform var(--transition);
+    box-shadow: 0 0 24px rgba(201, 255, 87, 0.18);
+  }
+  .detail .unlock-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .detail .unlock-btn:disabled {
+    background: var(--bg-card-hover);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
   .detail-nav {
     display: flex; justify-content: space-between; align-items: flex-start;
     margin-top: 3rem; padding-top: 1.5rem;
@@ -736,6 +759,7 @@
       </li>
       <li>Redesigned and created attack helicopter enemy, along with new pathing logic continually used for helicopter movement</li>
     </ul>
+    <button id="unlock-cod" class="unlock-btn" onclick="unlockCod()">Unlock — AI Design</button>
     <div class="detail-nav">
       <div></div>
       <a onclick="navigate('rockstar')">Next →<span>Rockstar Games</span></a>
@@ -764,6 +788,7 @@
       <li>Refactored existing components into a new script framework</li>
       <li>Assisted onboarding of new team members</li>
     </ul>
+    <button id="unlock-rockstar" class="unlock-btn" onclick="unlockRockstar()">Unlock — Open World</button>
     <div class="detail-nav">
       <a onclick="navigate('cod')">← Previous<span>Call Of Duty</span></a>
       <a onclick="navigate('plunderpanic')">Next →<span>Plunder Panic</span></a>
@@ -792,6 +817,7 @@
       <li>Implemented new menu system and game startup loop</li>
       <li>Reworked heavy gold chest item to prevent imbalanced gameplay</li>
     </ul>
+    <button id="unlock-plunderpanic" class="unlock-btn" onclick="unlockPlunderPanic()">Unlock — Pathing</button>
     <div class="detail-nav">
       <a onclick="navigate('rockstar')">← Previous<span>Rockstar Games</span></a>
       <a onclick="navigate('whipslash')">Next →<span>Whipslash</span></a>
@@ -817,6 +843,7 @@
       <li>Managed a team of 10 students throughout a semester, keeping the game within scope</li>
       <li>Created a character-driven responsive audio system for dynamic music transitions</li>
     </ul>
+    <button id="unlock-whipslash" class="unlock-btn" onclick="unlockWhipslash()">Unlock — Aim Assist</button>
     <div class="detail-nav">
       <a onclick="navigate('plunderpanic')">← Previous<span>Plunder Panic</span></a>
       <div></div>
@@ -892,9 +919,9 @@
 
 </main>
 
-<!-- DEV: skip directly to a boss for testing. Uncomment to expose the buttons.
+<!-- DEV: skip directly to a boss for testing. Comment-wrap this <div> for publish.
      The skipToBoss(n) / toggleDevInvincible() / triggerDamageFlash() functions
-     remain on `window` so they're still callable from the console either way.
+     remain on `window` so they're still callable from the console either way. -->
 <div id="dev-skip-panel">
   <button onclick="skipToBoss(1)">Boss 1 · 20k · ☕</button>
   <button onclick="skipToBoss(2)">Boss 2 · 50k · 🧃</button>
@@ -902,7 +929,6 @@
   <button id="dev-invincible-btn" onclick="toggleDevInvincible()">Invincible · OFF</button>
   <button onclick="triggerDamageFlash()">Test Flash 🩸</button>
 </div>
--->
 
 
 <!-- TOKEN LIMIT FLASH (Claude Access wears off) -->
@@ -1061,6 +1087,17 @@ window.addEventListener('hashchange', () => {
   const SIDE_PROJECT_CHECK_MAX_MS = 25000;
   const SIDE_PROJECT_QUIT_CHANCE = 0.5;
   let nextSideProjectCheckAt = 0;
+  // Kamikaze (CoD AI Design unlock) state.
+  let kamikazes = [];
+  let nextKamikazeAt = 0;
+  const KAMIKAZE_INTERVAL_MIN_MS = 4500;
+  const KAMIKAZE_INTERVAL_MAX_MS = 7500;
+  // Wingman pathing (Plunder Panic unlock) — persistent positions.
+  let wingmanInstances = [];
+  // Shared cooldown for gap-line attacks across every active boss so two
+  // bosses can't fire overlapping walls of bullets in the same frame.
+  const GAP_LINE_GLOBAL_COOLDOWN_MS = 1000;
+  let lastGapLineFireTs = 0;
   const QUIT_CHECK_MIN_MS = 20000;
   const QUIT_CHECK_MAX_MS = 45000;
   const QUIT_CHANCE = 0.5;
@@ -1078,6 +1115,11 @@ window.addEventListener('hashchange', () => {
     sideProject: false,          // orbiting drone (chance to wear off, like wingmen quitting)
     stockOptions: false,         // permanent +25% score
     techDebtPaid: false,         // permanent +1 max HP cap, +2 immediate heal
+    // Project-page unlocks (persist across resetGame — earned by reading, not playing):
+    aiDesigned: false,           // CoD: kamikaze purple wingman
+    openWorld: false,            // Rockstar: free vertical ship movement
+    pathingAlgo: false,          // Plunder Panic: wingmen target nearest word
+    aimAssist: false,            // Whipslash: bullet column magnetism
   };
   const BASE_FIRE_COOLDOWN = 450; // ms between shots — un-caffeinated baseline
   function getFireCooldown() {
@@ -1153,7 +1195,7 @@ window.addEventListener('hashchange', () => {
   window.addEventListener('mousemove', e => {
     mouseX = e.clientX;
     mouseY = e.clientY;
-    if (!gameStarted && mobileUnlocked) gameStarted = true;
+    if (!gameStarted && gameUnlocked) gameStarted = true;
   });
 
   // ── FIRING ──
@@ -1163,22 +1205,34 @@ window.addEventListener('hashchange', () => {
     // Tag bullets with pierce status at fire time so PR-approved bullets
     // keep piercing + double damage even after the buff expires mid-flight.
     const pierce = player.pierce;
+    // Helper: push a bullet, then (if Aim Assist is unlocked) bend its
+    // velocity toward the nearest target so it leaves the ship at an angle
+    // rather than spawning offset to one side.
+    const fire = (b) => { bendBulletWithAimAssist(b); bullets.push(b); };
+
     if (player.coneShot) {
       // Center + two angled shots
-      bullets.push({ x: ship.x, y: baseY, vx: 0,  vy: -12, size: 3, pierce });
-      bullets.push({ x: ship.x, y: baseY, vx: -2.4, vy: -11.5, size: 3, pierce });
-      bullets.push({ x: ship.x, y: baseY, vx:  2.4, vy: -11.5, size: 3, pierce });
+      fire({ x: ship.x, y: baseY, vx: 0,    vy: -12,   size: 3, pierce });
+      fire({ x: ship.x, y: baseY, vx: -2.4, vy: -11.5, size: 3, pierce });
+      fire({ x: ship.x, y: baseY, vx:  2.4, vy: -11.5, size: 3, pierce });
     } else {
-      bullets.push({ x: ship.x, y: baseY, vx: 0, vy: -12, size: 3, pierce });
+      fire({ x: ship.x, y: baseY, vx: 0, vy: -12, size: 3, pierce });
     }
     // Wingmen fire single straight shots regardless of cone upgrade.
     // Principal Engineers carry their blue color through the bullet.
     getWingmanPositions().forEach(p => {
-      bullets.push({ x: p.x, y: p.y - ship.height * 0.42, vx: 0, vy: -12, size: 2.5, pierce, color: p.color });
+      fire({ x: p.x, y: p.y - ship.height * 0.42, vx: 0, vy: -12, size: 2.5, pierce, color: p.color });
     });
   }
 
   function getWingmanPositions() {
+    // Plunder Panic unlock: wingmen self-target nearest word along the
+    // bottom of the screen. Returns persistent instances instead of
+    // ship-relative slots.
+    if (player.pathingAlgo) {
+      syncWingmanInstances();
+      return wingmanInstances;
+    }
     const out = [];
     const offset = ship.width * 1.0;       // tighter flank than before
     const back = ship.height * 0.5;
@@ -1220,23 +1274,22 @@ window.addEventListener('hashchange', () => {
   // ── MOBILE: touch follow + auto-fire ──
   const isTouchDevice = () => window.matchMedia('(hover: none) and (pointer: coarse)').matches;
   let autoFireInterval = null;
-  // On mobile, the game stays dormant until the user scrolls the home page
-  // to the bottom — that's the deliberate "I want to play" signal.
-  let mobileUnlocked = !isTouchDevice();
+  // The game stays dormant on every device until the user scrolls the home
+  // page to the bottom — a deliberate "I want to play" signal regardless of
+  // input modality. Hitting the bottom is itself the start cue.
+  let gameUnlocked = false;
 
   const homeEl = document.getElementById('page-home');
   if (homeEl) {
     homeEl.addEventListener('scroll', () => {
-      if (mobileUnlocked) return;
+      if (gameUnlocked) return;
       if (homeEl.scrollTop + homeEl.clientHeight >= homeEl.scrollHeight - 40) {
-        mobileUnlocked = true;
-        // Reaching the bottom on mobile is itself the start signal — no tap needed.
-        if (isTouchDevice()) {
-          mouseX = W / 2;
-          mouseY = ship.y;
-          gameStarted = true;
-          startAutoFire();
-        }
+        gameUnlocked = true;
+        if (mouseX < 0) mouseX = W / 2;          // seed if no mouse has moved yet
+        if (mouseY < 0) mouseY = ship.y;
+        gameStarted = true;
+        if (isTouchDevice()) startAutoFire();
+        showFlashMessage('NEW PROJECT STARTED', 'green');
       }
     }, { passive: true });
   }
@@ -1262,7 +1315,7 @@ window.addEventListener('hashchange', () => {
 
   window.addEventListener('touchstart', e => {
     if (!isGameTouch(e)) return;
-    if (!mobileUnlocked) return;
+    if (!gameUnlocked) return;
     e.preventDefault();
     if (!gameStarted) gameStarted = true;
     const t = e.touches[0];
@@ -1277,7 +1330,7 @@ window.addEventListener('hashchange', () => {
 
   window.addEventListener('touchmove', e => {
     if (!isGameTouch(e)) return;
-    if (!mobileUnlocked) return;
+    if (!gameUnlocked) return;
     e.preventDefault();
     const t = e.touches[0];
     mouseX = t.clientX;
@@ -1890,6 +1943,13 @@ window.addEventListener('hashchange', () => {
       const stillFiring = b && !b._dying && !b.fading && bosses.indexOf(b) !== -1;
       if (stillFiring && ps.kind === 'homing') {
         spawnHomingBall(b.x, b.y + 30);
+      } else if (ps.kind === 'mortarIndicator') {
+        // Visual-only telegraph at the marked location — repeating yellow
+        // shockwave so the player can see where the mortar will land.
+        // Fires regardless of boss state (it's already a committed warning).
+        spawnShockwave(ps.x, ps.y, '#ffd32a');
+      } else if (stillFiring && ps.kind === 'mortarLaunch') {
+        spawnMortarShell(b, ps.x, ps.y);
       }
       pendingShots.splice(i, 1);
     }
@@ -1900,6 +1960,63 @@ window.addEventListener('hashchange', () => {
     const now = performance.now();
     for (let i = 0; i < 3; i++) {
       pendingShots.push({ kind: 'homing', srcBoss: boss, fireAt: now + i * 1000 });
+    }
+  }
+
+  // Yellow mortar: a big yellow projectile lobbed at a designated playfield
+  // location. The location is telegraphed by repeating yellow shockwaves;
+  // on arrival the projectile detonates into 12 small radial fragments.
+  function pattern_yellowMortar(boss) {
+    const pf = getPlayfield();
+    const targetX = pf.left + 30 + Math.random() * (pf.right - pf.left - 60);
+    const targetY = NAV_HEIGHT + 200 + Math.random() * (H - NAV_HEIGHT - 320);
+    const now = performance.now();
+    // Indicator pulses at the target every 200ms during the warning phase.
+    for (let i = 0; i < 4; i++) {
+      pendingShots.push({ kind: 'mortarIndicator', x: targetX, y: targetY, srcBoss: boss, fireAt: now + i * 200 });
+    }
+    // Then launch the big projectile.
+    pendingShots.push({ kind: 'mortarLaunch', x: targetX, y: targetY, srcBoss: boss, fireAt: now + 800 });
+  }
+
+  function spawnMortarShell(boss, targetX, targetY) {
+    const dx = targetX - boss.x, dy = targetY - boss.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const speed = 4;
+    enemyShots.push({
+      type: 'big',
+      x: boss.x, y: boss.y,
+      vx: (dx / dist) * speed,
+      vy: (dy / dist) * speed,
+      targetX, targetY,
+      r: 16,
+      color: '#ffd32a',
+      glow: '#fff076',
+      trail: [],
+      // Drives the in-flight indicator pulse cadence — first pulse fires
+      // immediately on spawn, then every 200ms until the shell detonates.
+      nextIndicatorAt: 0,
+    });
+  }
+
+  function detonateMortarShell(s) {
+    spawnParticles(s.x, s.y, s.color, 30);
+    spawnParticles(s.x, s.y, '#ff5c57', 14);
+    spawnShockwave(s.x, s.y, s.color);
+    const fragSpeed = 3.5;
+    const FRAG_COUNT = 18;
+    for (let i = 0; i < FRAG_COUNT; i++) {
+      const angle = (Math.PI * 2 * i) / FRAG_COUNT;
+      enemyShots.push({
+        type: 'straight',
+        x: s.x, y: s.y,
+        vx: Math.cos(angle) * fragSpeed,
+        vy: Math.sin(angle) * fragSpeed,
+        r: 7,
+        color: '#ffd32a',
+        glow: '#fff076',
+        trail: [],
+      });
     }
   }
 
@@ -1928,7 +2045,7 @@ window.addEventListener('hashchange', () => {
       reward: function() {
         player.principalEngineers = Math.min(2, player.principalEngineers + 1);
         updatePowerupHUD();
-        showFlashMessage('PRINCIPAL ENGINEER', 'green');
+        showFlashMessage('HIRED PRINCIPAL ENGINEER', 'green');
       },
       enrageWordTuning: {
         intervalStart: 3300,
@@ -1970,7 +2087,7 @@ window.addEventListener('hashchange', () => {
       reward: function() {
         player.principalEngineers = Math.min(2, player.principalEngineers + 1);
         updatePowerupHUD();
-        showFlashMessage('PRINCIPAL ENGINEER', 'green');
+        showFlashMessage('HIRED PRINCIPAL ENGINEER', 'green');
       },
       enrageWordTuning: {
         intervalStart: 3000,
@@ -2009,6 +2126,7 @@ window.addEventListener('hashchange', () => {
       attacks: [
         { fn: pattern_gapLine, interval: 2000, startDelay: 1500 },
         { fn: pattern_homingBurst, interval: 4500, startDelay: 3000 },
+        { fn: pattern_yellowMortar, interval: 6500, startDelay: 5000 },
       ],
       onHpThreshold: {
         fraction: 0.5,
@@ -2145,7 +2263,10 @@ window.addEventListener('hashchange', () => {
       spawnParticles(bx, by, '#ffd32a', 40);
       spawnShockwave(bx, by, boss.def.color);
       updateScore(boss.def.scoreReward || 2000, true);
-      enemyShots = [];
+      // Only screen-clear lingering bullets when no sibling boss is still
+      // active — otherwise this kill would erase the other boss's shots.
+      const someoneElseAlive = bosses.some(b => b !== boss && !b._dying && !b.fading);
+      if (!someoneElseAlive) enemyShots = [];
       // Each main boss defeat permanently bumps every future word's base HP by 2.
       if (FIRE_RATE_GATE_BOSSES.indexOf(boss.def.id) !== -1) {
         bossDefeatedHpBonus += 2;
@@ -2195,8 +2316,16 @@ window.addEventListener('hashchange', () => {
       for (let i = 0; i < boss.def.attacks.length; i++) {
         const atk = boss.def.attacks[i];
         if (ts >= boss.attackTimers[i]) {
+          // Gap-line attacks share a 1s global cooldown across all bosses
+          // so Launch Day + Day One Patch can't fire overlapping screen-
+          // wide walls in the same frame.
+          if (atk.fn === pattern_gapLine && ts - lastGapLineFireTs < GAP_LINE_GLOBAL_COOLDOWN_MS) {
+            boss.attackTimers[i] = lastGapLineFireTs + GAP_LINE_GLOBAL_COOLDOWN_MS;
+            continue;
+          }
           atk.fn(boss);
           boss.attackTimers[i] = ts + atk.interval;
+          if (atk.fn === pattern_gapLine) lastGapLineFireTs = ts;
         }
       }
     }
@@ -2317,6 +2446,22 @@ window.addEventListener('hashchange', () => {
       s.x += s.vx * dt;
       s.y += s.vy * dt;
 
+      // Big mortar shell: keep pulsing the indicator at the impact spot
+      // until arrival, then detonate.
+      if (s.type === 'big' && !s.exploded) {
+        const now = performance.now();
+        if (now >= s.nextIndicatorAt) {
+          spawnShockwave(s.targetX, s.targetY, '#ffd32a');
+          s.nextIndicatorAt = now + 200;
+        }
+        const dx = s.targetX - s.x;
+        const dy = s.targetY - s.y;
+        if (dx * dx + dy * dy < 18 * 18) {
+          s.exploded = true;
+          detonateMortarShell(s);
+        }
+      }
+
       // Edge collision: homing balls explode, straight shots just leave.
       if (s.type === 'homing' && (s.x < 0 || s.x > W || s.y < 0 || s.y > H)) {
         s.exploded = true;
@@ -2372,6 +2517,262 @@ window.addEventListener('hashchange', () => {
 
   // Dev: pop the screen-flash on demand to verify the effect.
   window.triggerDamageFlash = function() { damageFlash = 1; };
+
+  // ── PROJECT-PAGE UNLOCKS ──
+  // Permanent rewards for visiting / reading a project. They persist across
+  // resetGame so the player keeps them between deaths.
+  function unlockProjectUpgrade(flag, label, btnId) {
+    if (player[flag]) return;
+    player[flag] = true;
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      btn.textContent = '✓ Unlocked — ' + label;
+      btn.disabled = true;
+    }
+    showFlashMessage(label.toUpperCase() + ' UNLOCKED', 'green');
+  }
+  window.unlockCod          = function() {
+    unlockProjectUpgrade('aiDesigned', 'AI Design', 'unlock-cod');
+    if (!nextKamikazeAt) nextKamikazeAt = performance.now() + 5000;
+  };
+  window.unlockRockstar     = function() { unlockProjectUpgrade('openWorld',    'Open World',    'unlock-rockstar'); };
+  window.unlockPlunderPanic = function() { unlockProjectUpgrade('pathingAlgo',  'Pathing',       'unlock-plunderpanic'); };
+  window.unlockWhipslash    = function() { unlockProjectUpgrade('aimAssist',    'Aim Assist',    'unlock-whipslash'); };
+
+  // Iterate every live, on-screen targetable entity (word / powerup / boss)
+  // and yield a normalized { x, y, src, kind } record. Liveness filters live
+  // here so they're consistent across every system that targets things.
+  // opts: { words: false } / { powerups: false } / { bosses: false } to skip
+  // a category (kamikazes opt out of powerups so they don't eat pickups).
+  function eachTarget(cb, opts) {
+    opts = opts || {};
+    if (opts.words !== false) {
+      for (const w of words) {
+        if (w.hp <= 0 || w.hit) continue;
+        if (w.y < NAV_HEIGHT + w.fontSize) continue;
+        cb({ x: w.x + w.width / 2, y: w.y - w.fontSize / 2, src: w, kind: 'word' });
+      }
+    }
+    if (opts.powerups !== false) {
+      for (const p of powerups) {
+        if (p.collected) continue;
+        if (p.y < NAV_HEIGHT + p.r) continue;
+        cb({ x: p.x, y: p.y, src: p, kind: 'powerup' });
+      }
+    }
+    if (opts.bosses !== false) {
+      for (const b of bosses) {
+        if (b._dying || b.fading || b.intro) continue;
+        cb({ x: b.x, y: b.y, src: b, kind: 'boss' });
+      }
+    }
+  }
+
+  // Aim assist (Whipslash): bend a fired bullet's *velocity* (not its
+  // spawn position) toward the nearest live target. Bullets still leave
+  // the ship's nose, just at an angle, so the visual reads correctly.
+  // Considers words, powerup orbs, and bosses; angle is capped so a far
+  // target doesn't fling shots sideways.
+  const AIM_ASSIST_MAX_BEND = Math.PI / 12; // 15° cap from natural heading
+  function bendBulletWithAimAssist(bullet) {
+    if (!player.aimAssist) return;
+    let target = null, bestDist = Infinity;
+    eachTarget(t => {
+      const dx = t.x - bullet.x, dy = t.y - bullet.y;
+      const d = dx * dx + dy * dy;
+      if (d < bestDist) { bestDist = d; target = t; }
+    });
+    if (!target) return;
+    const speed = Math.sqrt(bullet.vx * bullet.vx + bullet.vy * bullet.vy) || 1;
+    const dx = target.x - bullet.x;
+    const dy = target.y - bullet.y;
+    const targetAngle = Math.atan2(dy, dx);
+    const baseAngle = Math.atan2(bullet.vy, bullet.vx);
+    let delta = targetAngle - baseAngle;
+    while (delta > Math.PI) delta -= 2 * Math.PI;
+    while (delta < -Math.PI) delta += 2 * Math.PI;
+    if (delta >  AIM_ASSIST_MAX_BEND) delta =  AIM_ASSIST_MAX_BEND;
+    if (delta < -AIM_ASSIST_MAX_BEND) delta = -AIM_ASSIST_MAX_BEND;
+    const finalAngle = baseAngle + delta;
+    bullet.vx = Math.cos(finalAngle) * speed;
+    bullet.vy = Math.sin(finalAngle) * speed;
+  }
+
+  // Kamikaze (CoD AI Design): a small purple wingman that targets the
+  // nearest word and explodes on contact. Insta-kill on regular words,
+  // 50 damage to bosses.
+  const KAMIKAZE_SPEED = 5;
+  function spawnKamikaze() {
+    kamikazes.push({
+      x: ship.x, y: ship.y - ship.height,
+      vx: 0, vy: -1,
+      target: null,
+      detonated: false,
+      color: '#bd93f9',
+      glow: '#dcc8ff',
+      r: 6,
+    });
+  }
+
+  function pickKamikazeTarget(k) {
+    // Kamikazes opt out of powerups so they don't accidentally eat pickups.
+    let best = null, bestDist = Infinity;
+    eachTarget(t => {
+      const dx = t.x - k.x, dy = t.y - k.y;
+      const d = dx * dx + dy * dy;
+      if (d < bestDist) { bestDist = d; best = t.src; }
+    }, { powerups: false });
+    return best;
+  }
+
+  function updateKamikazes() {
+    for (const k of kamikazes) {
+      if (k.detonated) continue;
+      // Re-acquire target if lost or dead.
+      if (!k.target || k.target.hit || (k.target.hp != null && k.target.hp <= 0) ||
+          k.target._dying || k.target.fading) {
+        k.target = pickKamikazeTarget(k);
+      }
+      let tx, ty, hitR;
+      if (!k.target) {
+        // No target: drift up off-screen.
+        k.vx = 0; k.vy = -2;
+      } else if (bosses.indexOf(k.target) !== -1) {
+        tx = k.target.x; ty = k.target.y; hitR = 28;
+        const dx = tx - k.x, dy = ty - k.y;
+        const d = Math.sqrt(dx * dx + dy * dy) || 1;
+        k.vx = (dx / d) * KAMIKAZE_SPEED;
+        k.vy = (dy / d) * KAMIKAZE_SPEED;
+      } else {
+        tx = k.target.x + k.target.width / 2;
+        ty = k.target.y - k.target.fontSize / 2;
+        hitR = 22;
+        const dx = tx - k.x, dy = ty - k.y;
+        const d = Math.sqrt(dx * dx + dy * dy) || 1;
+        k.vx = (dx / d) * KAMIKAZE_SPEED;
+        k.vy = (dy / d) * KAMIKAZE_SPEED;
+      }
+      k.x += k.vx * dt;
+      k.y += k.vy * dt;
+      // Collision check.
+      if (k.target && tx != null) {
+        const dx = tx - k.x, dy = ty - k.y;
+        if (dx * dx + dy * dy < hitR * hitR) {
+          k.detonated = true;
+          spawnParticles(k.x, k.y, k.color, 24);
+          spawnParticles(k.x, k.y, '#ffd32a', 14);
+          spawnShockwave(k.x, k.y, k.color);
+          if (bosses.indexOf(k.target) !== -1) {
+            damageBoss(k.target, k.x, k.y, 50);
+          } else {
+            const w = k.target;
+            w.hit = true;
+            spawnParticles(w.x + w.width / 2, w.y - w.fontSize / 2, w.color, 16);
+            spawnShockwave(w.x + w.width / 2, w.y - w.fontSize / 2, w.color);
+            updateScore(10 * w.text.length * w.maxHp);
+          }
+        }
+      }
+      // Off-screen cleanup.
+      if (k.y < -60 || k.y > H + 60 || k.x < -60 || k.x > W + 60) k.detonated = true;
+    }
+    kamikazes = kamikazes.filter(k => !k.detonated);
+  }
+
+  function drawKamikazes() {
+    for (const k of kamikazes) {
+      // Orient toward velocity. Default ship art faces "up" (-PI/2),
+      // so add PI/2 to the velocity angle to align nose with motion.
+      const angle = Math.atan2(k.vy, k.vx) + Math.PI / 2;
+      ctx.save();
+      ctx.translate(k.x, k.y);
+      ctx.rotate(angle);
+      drawShip(0, 0, 0.95, k.color);
+      ctx.restore();
+    }
+  }
+
+  // Wingman pathing (Plunder Panic): wingmen own a persistent x along the
+  // bottom of the screen and lerp toward the nearest word's column.
+  const WINGMAN_BOTTOM_Y = () => H - 80;
+  const WINGMAN_MAX_SPEED = 4;
+  function syncWingmanInstances() {
+    const wantNormal = player.wingmen;
+    const wantPe = player.principalEngineers;
+    // Drop extras.
+    while (wingmanInstances.length > wantNormal + wantPe) {
+      const currentNormal = wingmanInstances.filter(w => !w.isPe).length;
+      if (currentNormal > wantNormal) {
+        const idx = wingmanInstances.findIndex(w => !w.isPe);
+        if (idx >= 0) wingmanInstances.splice(idx, 1); else break;
+      } else {
+        const idx = wingmanInstances.findIndex(w => w.isPe);
+        if (idx >= 0) wingmanInstances.splice(idx, 1); else break;
+      }
+    }
+    // Add missing.
+    let curN = wingmanInstances.filter(w => !w.isPe).length;
+    while (curN < wantNormal) {
+      wingmanInstances.push({ x: ship.x + (Math.random() - 0.5) * 80, y: WINGMAN_BOTTOM_Y(), vx: 0, isPe: false, color: undefined });
+      curN++;
+    }
+    let curP = wingmanInstances.filter(w => w.isPe).length;
+    while (curP < wantPe) {
+      wingmanInstances.push({ x: ship.x + (Math.random() - 0.5) * 80, y: WINGMAN_BOTTOM_Y(), vx: 0, isPe: true, color: '#48dbfb' });
+      curP++;
+    }
+  }
+
+  const WINGMAN_SLOT_SPACING = 36; // px between wingmen when stacked on the same target
+  function updateWingmenAI() {
+    if (!player.pathingAlgo) return;
+    syncWingmanInstances();
+    // Collect target X-coords from every valid candidate, sorted left→right.
+    const targetXs = [];
+    eachTarget(t => targetXs.push(t.x));
+    targetXs.sort((a, b) => a - b);
+
+    const n = wingmanInstances.length;
+    if (n === 0) return;
+
+    // Sort wingmen by X so the leftmost wingman picks the leftmost target;
+    // this minimizes total travel and gives a stable assignment frame-to-frame.
+    const wmOrder = wingmanInstances
+      .map((_, i) => i)
+      .sort((a, b) => wingmanInstances[a].x - wingmanInstances[b].x);
+
+    if (targetXs.length === 0) {
+      // No targets — wingmen idle along the bottom.
+      for (const wm of wingmanInstances) { wm.y = WINGMAN_BOTTOM_Y(); }
+      return;
+    }
+
+    // Distribute wingmen across targets, then group within shared targets so
+    // they get symmetric offsets instead of stacking.
+    const m = targetXs.length;
+    const groups = new Map(); // targetIdx -> [rank, rank, ...]
+    for (let rank = 0; rank < n; rank++) {
+      const targetI = Math.min(m - 1, Math.floor(rank * m / n));
+      if (!groups.has(targetI)) groups.set(targetI, []);
+      groups.get(targetI).push(rank);
+    }
+
+    for (const [targetI, ranks] of groups) {
+      const groupSize = ranks.length;
+      for (let g = 0; g < groupSize; g++) {
+        const rank = ranks[g];
+        const wm = wingmanInstances[wmOrder[rank]];
+        const slot = groupSize === 1 ? 0 : (g - (groupSize - 1) / 2);
+        const slotOffset = slot * WINGMAN_SLOT_SPACING;
+        const desiredX = targetXs[targetI] + slotOffset;
+        const adjustedDx = desiredX - wm.x;
+        const step = Math.max(-WINGMAN_MAX_SPEED, Math.min(WINGMAN_MAX_SPEED, adjustedDx));
+        wm.x += step * dt;
+        wm.x = Math.max(20, Math.min(W - 20, wm.x));
+        wm.y = WINGMAN_BOTTOM_Y();
+      }
+    }
+  }
 
   let devInvincible = false;
   window.toggleDevInvincible = function() {
@@ -2488,12 +2889,17 @@ window.addEventListener('hashchange', () => {
     // Explicit bullet color (e.g. blue from a Principal Engineer) wins;
     // otherwise pierce bullets glow blue and regular bullets stay green.
     const color = b.color || (b.pierce ? '#48dbfb' : '#c9ff57');
+    // Orient the streak with travel direction. Default art's "forward" is
+    // straight up (-PI/2), so add PI/2 to the velocity angle.
+    const angle = Math.atan2(b.vy, b.vx) + Math.PI / 2;
     ctx.save();
+    ctx.translate(b.x, b.y);
+    ctx.rotate(angle);
     ctx.shadowBlur = 8;
     ctx.shadowColor = color;
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.rect(b.x - b.size/2, b.y - b.size, b.size, b.size * 4);
+    ctx.rect(-b.size / 2, -b.size, b.size, b.size * 4);
     ctx.fill();
     ctx.restore();
   }
@@ -2786,7 +3192,7 @@ window.addEventListener('hashchange', () => {
     if (modal) modal.classList.remove('show', 'fade-out');
 
     // Make sure the game is unlocked & started (mobile + desktop).
-    mobileUnlocked = true;
+    gameUnlocked = true;
     if (!gameStarted) {
       mouseX = W / 2;
       mouseY = ship.y;
@@ -2802,6 +3208,8 @@ window.addEventListener('hashchange', () => {
     score = 0; lives = 3; gameOver = false;
     bullets = []; words = []; particles = []; shockwaves = []; powerups = [];
     enemyShots = []; bosses = []; pendingShots = [];
+    kamikazes = []; nextKamikazeAt = 0; wingmanInstances = [];
+    lastGapLineFireTs = 0;
     phase = 'playing';
     pendingBossDef = null;
     bossIntroStartTs = 0;
@@ -2962,10 +3370,19 @@ window.addEventListener('hashchange', () => {
       }
     }
 
-    // Ship follows cursor (clamp accounts for wingmen flanking)
-    const flankPad = player.wingmen > 0 ? ship.width * 1.6 : ship.width / 2;
+    // Ship follows cursor. Pathing wingmen don't flank, so no extra pad.
+    // Open World unlock lets the ship lerp on Y too instead of locking to bottom.
+    const flankPad = (!player.pathingAlgo && player.wingmen > 0) ? ship.width * 1.6 : ship.width / 2;
     const targetX = Math.max(flankPad, Math.min(W - flankPad, mouseX));
     ship.x += (targetX - ship.x) * Math.min(1, 0.14 * dt);
+    if (player.openWorld) {
+      const minY = NAV_HEIGHT + ship.height;
+      const maxY = H - ship.height;
+      const targetY = Math.max(minY, Math.min(maxY, mouseY));
+      ship.y += (targetY - ship.y) * Math.min(1, 0.14 * dt);
+    } else {
+      ship.y = H - 80;
+    }
 
     // Phase state machine — handles boss trigger, intro, enrage, return-to-play.
     if (!gameWon) updatePhaseState(ts);
@@ -3086,6 +3503,17 @@ window.addEventListener('hashchange', () => {
     processPendingShots(ts);
     updateEnemyShots();
     updateDrone(ts);
+    updateWingmenAI();
+    // Kamikaze (CoD AI Design): spawn on a 10–16s cadence while unlocked.
+    if (player.aiDesigned && !gameWon) {
+      if (!nextKamikazeAt) nextKamikazeAt = performance.now() + 3000;
+      if (performance.now() >= nextKamikazeAt) {
+        spawnKamikaze();
+        nextKamikazeAt = performance.now() + KAMIKAZE_INTERVAL_MIN_MS +
+          Math.random() * (KAMIKAZE_INTERVAL_MAX_MS - KAMIKAZE_INTERVAL_MIN_MS);
+      }
+    }
+    updateKamikazes();
 
     // Update particles
     particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.05 * dt; p.life -= p.decay * dt; });
@@ -3100,6 +3528,7 @@ window.addEventListener('hashchange', () => {
     particles.forEach(drawParticle);
     drawShield();
     drawWingmen();
+    drawKamikazes();
     drawDrone();
     drawShip(ship.x, ship.y);
     drawDamageFlash();
