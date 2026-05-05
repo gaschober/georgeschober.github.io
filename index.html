@@ -893,13 +893,14 @@
 </main>
 
 <!-- DEV: skip directly to a boss for testing. Uncomment to expose the buttons.
-     The skipToBoss(n) and toggleDevInvincible() functions remain on `window`
-     so they're still callable from the console for debugging.
+     The skipToBoss(n) / toggleDevInvincible() / triggerDamageFlash() functions
+     remain on `window` so they're still callable from the console either way.
 <div id="dev-skip-panel">
   <button onclick="skipToBoss(1)">Boss 1 · 20k · ☕</button>
   <button onclick="skipToBoss(2)">Boss 2 · 50k · 🧃</button>
   <button onclick="skipToBoss(3)">Boss 3 · 100k · ⚡</button>
   <button id="dev-invincible-btn" onclick="toggleDevInvincible()">Invincible · OFF</button>
+  <button onclick="triggerDamageFlash()">Test Flash 🩸</button>
 </div>
 -->
 
@@ -1043,6 +1044,7 @@ window.addEventListener('hashchange', () => {
   let powerupInterval = 14000; // ms between powerup spawns
   let gameStarted = false;
   let frameCount = 0;
+  let damageFlash = 0;     // 1 on damage, decays per frame; drives the red screen flash
   const NAV_HEIGHT = 60; // matches --nav-height in CSS; words/powerups are invincible above this
   let lastTs = 0;
   let dt = 1; // 60fps frame = 1.0; scales all per-frame motion
@@ -2368,6 +2370,9 @@ window.addEventListener('hashchange', () => {
     });
   }
 
+  // Dev: pop the screen-flash on demand to verify the effect.
+  window.triggerDamageFlash = function() { damageFlash = 1; };
+
   let devInvincible = false;
   window.toggleDevInvincible = function() {
     devInvincible = !devInvincible;
@@ -2383,9 +2388,19 @@ window.addEventListener('hashchange', () => {
     lastDamageTs = performance.now();
     lives--;
     updateLives();
+    damageFlash = 1;
     spawnParticles(ship.x, ship.y, '#ff5c57', 14);
     spawnShockwave(ship.x, ship.y, '#ff5c57');
     if (lives <= 0) showGameOver();
+  }
+
+  function drawDamageFlash() {
+    if (damageFlash <= 0) return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 60, 50, ' + (damageFlash * 0.4) + ')';
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    damageFlash = Math.max(0, damageFlash - 0.05 * dt);
   }
 
   function hexToRgba(hex, a) {
@@ -2799,6 +2814,7 @@ window.addEventListener('hashchange', () => {
       d._defeated = false;
     });
     bossDefeatedHpBonus = 0;
+    damageFlash = 0;
     setWordTuning(NORMAL_WORD_TUNING);
     lastWordTime = 0;
     lastPowerupTime = 0;
@@ -2891,6 +2907,7 @@ window.addEventListener('hashchange', () => {
       particles.forEach(drawParticle);
       drawWingmen();
       drawShip(ship.x, ship.y);
+      drawDamageFlash();
       return;
     }
 
@@ -3054,6 +3071,7 @@ window.addEventListener('hashchange', () => {
       if (w.y > H - 40) {
         lives--;
         updateLives();
+        damageFlash = 1;
         const cx = w.x + w.width / 2;
         spawnParticles(cx, H - 60, '#ff5c57', 12);
         spawnShockwave(cx, H - 60, '#ff5c57');
@@ -3084,6 +3102,7 @@ window.addEventListener('hashchange', () => {
     drawWingmen();
     drawDrone();
     drawShip(ship.x, ship.y);
+    drawDamageFlash();
   }
 
   requestAnimationFrame(loop);
