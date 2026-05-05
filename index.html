@@ -125,12 +125,16 @@
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
-  /* Spacer so user can scroll content fully off-screen */
+  /* Spacer so user can scroll content fully off-screen — also hosts the
+     inline game-over prompt so it sits in the playspace, not over the page. */
   #home-spacer {
-    display: block;
     width: 100%;
     height: calc(100vh - var(--nav-height));
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
   }
 
   /* Detail + resume pages need a solid bg to read over space canvas */
@@ -398,6 +402,180 @@
     letter-spacing: 0.03em;
   }
 
+  /* ── SCROLL HINT (below project cards) ── */
+  .scroll-hint {
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 1.5rem 0 0.5rem;
+    text-shadow: 0 0 8px rgba(201, 255, 87, 0.55);
+    animation: scrollHintBlink 1s steps(2, end) infinite;
+  }
+  .scroll-hint .scroll-arrow {
+    display: block;
+    font-size: 1.4rem;
+    line-height: 1;
+    margin-top: 0.4rem;
+  }
+  @keyframes scrollHintBlink {
+    0%, 49%   { opacity: 1; }
+    50%, 100% { opacity: 0.35; }
+  }
+
+  /* ── DEV SKIP PANEL ── */
+  #dev-skip-panel {
+    position: fixed;
+    bottom: 5.5rem;
+    left: 1rem;
+    z-index: 75;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  #dev-skip-panel button {
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    padding: 0.4rem 0.7rem;
+    background: rgba(19, 19, 26, 0.85);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    letter-spacing: 0.04em;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: background var(--transition), border-color var(--transition);
+  }
+  #dev-skip-panel button:hover {
+    background: rgba(28, 28, 38, 0.95);
+    border-color: var(--accent);
+  }
+  #dev-skip-panel button.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  /* ── TOKEN LIMIT FLASH ── */
+  #token-limit-flash {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: clamp(1.4rem, 4.5vw, 2.4rem);
+    letter-spacing: 0.12em;
+    color: #ff5c57;
+    text-shadow: 0 0 14px rgba(255, 92, 87, 0.85);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 70;
+    opacity: 0;
+  }
+  #token-limit-flash.green {
+    color: #c9ff57;
+    text-shadow: 0 0 14px rgba(201, 255, 87, 0.85);
+  }
+  #token-limit-flash.show {
+    animation: tokenLimitFlash 0.75s ease-out 3 forwards;
+  }
+  @keyframes tokenLimitFlash {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+    25%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    75%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.02); }
+  }
+
+  /* ── GAME OVER PROMPT (inline inside the home playspace) ── */
+  #game-over-modal {
+    display: none;
+    width: 100%;
+    max-width: 460px;
+  }
+  #game-over-modal.show { display: block; animation: modalFadeIn 0.35s ease-out; }
+  #game-over-modal.fade-out { animation: modalFadeOut 0.35s ease-in forwards; }
+  @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes modalFadeOut { from { opacity: 1; } to { opacity: 0; } }
+  #game-over-modal .modal-card {
+    position: relative;
+    background: rgba(19, 19, 26, 0.96);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: clamp(1.75rem, 4vw, 2.75rem);
+    text-align: center;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  }
+  #game-over-modal .modal-close {
+    position: absolute;
+    top: 0.65rem; right: 0.85rem;
+    background: transparent; border: none;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 1.4rem; line-height: 1;
+    width: 2rem; height: 2rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color var(--transition), background var(--transition);
+  }
+  #game-over-modal .modal-close:hover {
+    color: var(--text);
+    background: var(--bg-card-hover);
+  }
+  #game-over-modal .modal-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+  #game-over-modal .modal-buttons {
+    display: flex; gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  #game-over-modal .modal-btn {
+    font-family: var(--font-body);
+    font-size: 0.78rem; font-weight: 700;
+    padding: 0.7rem 1.1rem; border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent; color: var(--text);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all var(--transition);
+  }
+  #game-over-modal .modal-btn-secondary:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--text-muted);
+  }
+  #game-over-modal .modal-btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+  #game-over-modal .modal-btn-primary:hover { opacity: 0.85; }
+  #game-over-modal .modal-body {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.9;
+  }
+  #game-over-modal .modal-body a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--transition);
+  }
+  #game-over-modal .modal-body a:hover { border-color: var(--accent); }
+
   /* ── GAME HUD overlay ── */
   .game-hud {
     position: fixed;
@@ -523,7 +701,16 @@
         </div>
       </div>
     </div>
-    <div id="home-spacer"></div>
+    <div class="scroll-hint">
+      Scroll down to make a game
+      <span class="scroll-arrow">↓</span>
+    </div>
+    <div id="home-spacer">
+      <!-- Game-over prompt sits inline in the playspace so it doesn't block browsing. -->
+      <div id="game-over-modal">
+        <div class="modal-card" id="game-over-card"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -705,6 +892,21 @@
 
 </main>
 
+<!-- DEV: skip directly to a boss for testing. Uncomment to expose the buttons.
+     The skipToBoss(n) and toggleDevInvincible() functions remain on `window`
+     so they're still callable from the console for debugging.
+<div id="dev-skip-panel">
+  <button onclick="skipToBoss(1)">Boss 1 · 20k · ☕</button>
+  <button onclick="skipToBoss(2)">Boss 2 · 50k · 🧃</button>
+  <button onclick="skipToBoss(3)">Boss 3 · 100k · ⚡</button>
+  <button id="dev-invincible-btn" onclick="toggleDevInvincible()">Invincible · OFF</button>
+</div>
+-->
+
+
+<!-- TOKEN LIMIT FLASH (Claude Access wears off) -->
+<div id="token-limit-flash">HIT TOKEN USAGE LIMIT</div>
+
 <!-- GAME HUD -->
 <div class="game-hud" id="game-hud">
   <span class="hud-score" id="hud-score">SCORE: 000</span>
@@ -778,8 +980,12 @@ window.addEventListener('hashchange', () => {
     'JULY GREEN LIGHT','OCTOBER GREEN LIGHT',
     'VERTICAL SLICE','OVERTIME','MERGE CONFLICT',
     'PERFORMANCE REVIEWS','LEADERSHIP QUITS','LEAKED BUILD',
-    'DAY ONE PATCH','TRAILER DROP','METACRITIC SCORES',
-    'ALPHA MILESTONE',
+    'TRAILER DROP','METACRITIC SCORES',
+    // ── new additions ──
+    'TECHNICAL DEBT','BUG REPORT','HOTFIX','REGRESSION',
+    'BROKEN BUILD','FAILED CERT','LICENSING ISSUE',
+    'ENGINE CHANGE','E3 DEMO','INVESTOR DEMO','REVIEW BOMB',
+    'HIRING FREEZE','DLC PIPELINE','LIVE SERVICE','ACQUISITION',
   ];
   const WORD_COLORS = ['#ff5c57','#ff9f43','#ffd32a','#c9ff57','#48dbfb','#ff79c6','#bd93f9'];
 
@@ -790,41 +996,107 @@ window.addEventListener('hashchange', () => {
   let particles = [];
   let shockwaves = [];
   let powerups = [];
+  let enemyShots = [];           // boss projectiles
+  let bosses = [];               // active boss instances (>1 during clone fights)
+  let phase = 'playing';         // 'playing' | 'boss-pending' | 'boss-intro' | 'boss-fight' | 'boss-enraged'
+  let pendingBossDef = null;
+  let bossIntroStartTs = 0;
+  let bossFlashTriggered = false;
+  let lastDamageTs = 0;          // i-frames after taking a hit
+  let gameWon = false;           // player has cleared all winsGame bosses
+
+  // Word-spawn tuning. Bosses can swap to their own tuning block while enraged.
+  // Same shape, just different values, so every parameter is independently tunable.
+  // Spawn-rate ramp is score-driven: at score == intervalScoreToFloor (relative to
+  // when this tuning became active for non-NORMAL tunings) the interval reaches
+  // intervalFloor.
+  const NORMAL_WORD_TUNING = {
+    intervalStart: 2400,
+    intervalFloor: 500,
+    intervalScoreToFloor: 50000,
+    speedBaseMin: 0.35,
+    speedBaseRange: 0.55,
+    speedScoreScale: 37000,    // speed multiplier reaches its cap (3.4) at score ≈ 125k
+    speedScoreCap: 3.4,
+    lengthHpShort: 9,
+    lengthHpLong: 14,
+    hpScoreGates: [
+      { score: 2000,   chance: 0.55 },
+      { score: 8000,   chance: 0.50 },
+      { score: 20000,  chance: 0.45 },  // caps at Alpha trigger
+      { score: 35000,  chance: 0.40 },
+      { score: 50000,  chance: 0.35 },  // caps at Beta trigger
+      { score: 80000,  chance: 0.30 },
+      { score: 125000, chance: 0.25 },  // caps at the difficulty ceiling
+    ],
+    hpCap: 10,
+  };
+  let activeWordTuning = NORMAL_WORD_TUNING;
+  let tuningStartScore = 0;     // baseline score the active tuning ramps from
+  let bossDefeatedHpBonus = 0;  // +2 per main boss defeated, added to every word's base HP
   let score = 0;
   let highScore = parseInt(localStorage.getItem('gs_hiscore') || '0', 10);
   let lives = 3;
   let gameOver = false;
   let lastWordTime = 0;
-  let wordInterval = 2800;
   let lastPowerupTime = 0;
   let powerupInterval = 14000; // ms between powerup spawns
   let gameStarted = false;
   let frameCount = 0;
+  const NAV_HEIGHT = 60; // matches --nav-height in CSS; words/powerups are invincible above this
   let lastTs = 0;
   let dt = 1; // 60fps frame = 1.0; scales all per-frame motion
   const TIME_SCALE = 1.69; // overall game-speed multiplier
 
   // ── POWERUP STATE ──
-  // All upgrades are permanent until game over
+  // Caffeine is permanent until game over.
+  // Claude Access (coneShot) expires after CLAUDE_ACCESS_DURATION_MS.
+  // Each wingman has a 50% chance to quit on every 20–45s tick.
+  const CLAUDE_ACCESS_DURATION_MS = 10000;
+  const PIERCE_DURATION_MS = 10000;
+  // Side Project rolls a quit chance every 12–25s instead of expiring on a timer.
+  const SIDE_PROJECT_CHECK_MIN_MS = 12000;
+  const SIDE_PROJECT_CHECK_MAX_MS = 25000;
+  const SIDE_PROJECT_QUIT_CHANCE = 0.5;
+  let nextSideProjectCheckAt = 0;
+  const QUIT_CHECK_MIN_MS = 20000;
+  const QUIT_CHECK_MAX_MS = 45000;
+  const QUIT_CHANCE = 0.5;
+  let nextQuitCheckAt = 0;
+  let maxLives = 6;       // Tech Debt Paid bumps this to 7
+  let drone = null;       // Side Project orbiting drone, null when inactive
   const player = {
-    fireRateLevel: 0,   // 0..3, each level reduces cooldown
-    coneShot: false,    // 3-shot cone
-    wingmen: 0,         // 0..2 wingmen flanking the ship
+    fireRateLevel: 0,            // 0..3, each level reduces cooldown
+    coneShot: false,             // 3-shot cone (temporary)
+    coneShotExpiresAt: 0,
+    wingmen: 0,                  // 0..2 regular wingmen flanking the ship
+    principalEngineers: 0,       // 0..2 permanent blue wingmen in front, immune to QUIT
+    pierce: false,               // bullets pierce all enemies (temporary)
+    pierceExpiresAt: 0,
+    sideProject: false,          // orbiting drone (chance to wear off, like wingmen quitting)
+    stockOptions: false,         // permanent +25% score
+    techDebtPaid: false,         // permanent +1 max HP cap, +2 immediate heal
   };
-  const BASE_FIRE_COOLDOWN = 240; // ms between shots — slower than before
+  const BASE_FIRE_COOLDOWN = 450; // ms between shots — un-caffeinated baseline
   function getFireCooldown() {
-    // -45ms per level, floor 100ms
-    return Math.max(100, BASE_FIRE_COOLDOWN - player.fireRateLevel * 45);
+    // -110ms per caffeine tier, floor 100ms (so each upgrade is felt).
+    // Claude Access halves the cooldown while active (+100% fire rate).
+    const base = Math.max(100, BASE_FIRE_COOLDOWN - player.fireRateLevel * 110);
+    return player.coneShot ? base * 0.5 : base;
   }
 
   // Powerup definitions — industry-themed metaphors
   const POWERUP_TYPES = [
-    { key: 'coffee', label: 'COFFEE',        color: '#c98a5b', glow: '#e8b58a' },
-    { key: 'redbull', label: 'RED BULL',     color: '#3da6ff', glow: '#9bd0ff' },
-    { key: 'espresso', label: 'ESPRESSO',    color: '#5a3520', glow: '#a87856' },
-    { key: 'heart', label: 'NEW FUNDING',    color: '#ff5c8a', glow: '#ffb3c8' },
-    { key: 'access', label: 'CLAUDE ACCESS', color: '#d97757', glow: '#f0a98a' },
-    { key: 'hire',  label: 'NEW HIRE',       color: '#bda2ff', glow: '#ddc8ff' },
+    { key: 'coffee',       label: 'COFFEE',          color: '#c98a5b', glow: '#e8b58a' },
+    { key: 'redbull',      label: 'RED BULL',        color: '#3da6ff', glow: '#9bd0ff' },
+    { key: 'espresso',     label: 'ESPRESSO',        color: '#5a3520', glow: '#a87856' },
+    { key: 'heart',        label: 'NEW FUNDING',     color: '#ff5c8a', glow: '#ffb3c8' },
+    { key: 'access',       label: 'CLAUDE ACCESS',   color: '#d97757', glow: '#f0a98a' },
+    { key: 'hire',         label: 'NEW HIRE',        color: '#bda2ff', glow: '#ddc8ff' },
+    { key: 'pullRequest',  label: 'PULL REQUEST',    color: '#4caf50', glow: '#a5d6a7' },
+    { key: 'sideProject',  label: 'SIDE PROJECT',    color: '#ff7043', glow: '#ffab91' },
+    { key: 'stockOptions', label: 'STOCK OPTIONS',   color: '#ffd700', glow: '#fff9b3' },
+    { key: 'techDebt',     label: 'TECH DEBT PAID',  color: '#7e57c2', glow: '#c4a8e8' },
   ];
 
   // Caffeine progression: each is a distinct powerup, only the next tier spawns
@@ -886,26 +1158,39 @@ window.addEventListener('hashchange', () => {
   function fireOnce() {
     if (gameOver) return;
     const baseY = ship.y - ship.height / 2;
+    // Tag bullets with pierce status at fire time so PR-approved bullets
+    // keep piercing + double damage even after the buff expires mid-flight.
+    const pierce = player.pierce;
     if (player.coneShot) {
       // Center + two angled shots
-      bullets.push({ x: ship.x, y: baseY, vx: 0,  vy: -12, size: 3 });
-      bullets.push({ x: ship.x, y: baseY, vx: -2.4, vy: -11.5, size: 3 });
-      bullets.push({ x: ship.x, y: baseY, vx:  2.4, vy: -11.5, size: 3 });
+      bullets.push({ x: ship.x, y: baseY, vx: 0,  vy: -12, size: 3, pierce });
+      bullets.push({ x: ship.x, y: baseY, vx: -2.4, vy: -11.5, size: 3, pierce });
+      bullets.push({ x: ship.x, y: baseY, vx:  2.4, vy: -11.5, size: 3, pierce });
     } else {
-      bullets.push({ x: ship.x, y: baseY, vx: 0, vy: -12, size: 3 });
+      bullets.push({ x: ship.x, y: baseY, vx: 0, vy: -12, size: 3, pierce });
     }
-    // Wingmen fire single straight shots regardless of cone upgrade
+    // Wingmen fire single straight shots regardless of cone upgrade.
+    // Principal Engineers carry their blue color through the bullet.
     getWingmanPositions().forEach(p => {
-      bullets.push({ x: p.x, y: p.y - ship.height * 0.42, vx: 0, vy: -12, size: 2.5 });
+      bullets.push({ x: p.x, y: p.y - ship.height * 0.42, vx: 0, vy: -12, size: 2.5, pierce, color: p.color });
     });
   }
 
   function getWingmanPositions() {
     const out = [];
-    const offset = ship.width * 1.3;
+    const offset = ship.width * 1.0;       // tighter flank than before
     const back = ship.height * 0.5;
     if (player.wingmen >= 1) out.push({ x: ship.x - offset, y: ship.y + back, side: -1 });
     if (player.wingmen >= 2) out.push({ x: ship.x + offset, y: ship.y + back, side: 1 });
+    // Principal Engineers: offset in FRONT (above) the ship, left then right.
+    const peOffset = ship.width * 1.5;
+    const peForward = -ship.height * 0.4;  // negative y = up = in front
+    if (player.principalEngineers >= 1) {
+      out.push({ x: ship.x - peOffset, y: ship.y + peForward, side: -1, color: '#48dbfb' });
+    }
+    if (player.principalEngineers >= 2) {
+      out.push({ x: ship.x + peOffset, y: ship.y + peForward, side: 1, color: '#48dbfb' });
+    }
     return out;
   }
 
@@ -957,10 +1242,11 @@ window.addEventListener('hashchange', () => {
   function startAutoFire() {
     if (autoFireInterval) return;
     autoFireInterval = setInterval(() => {
-      if (!gameOver && gameStarted) {
+      if (!gameOver && gameStarted && performance.now() - lastFireTs > getFireCooldown()) {
         fireOnce();
+        lastFireTs = performance.now();
       }
-    }, 600);
+    }, 30);
   }
 
   // Only treat a touch as game input when it lands on empty space —
@@ -981,8 +1267,9 @@ window.addEventListener('hashchange', () => {
     mouseX = t.clientX;
     mouseY = t.clientY;
     startAutoFire();
-    if (!gameOver) {
+    if (!gameOver && performance.now() - lastFireTs > getFireCooldown()) {
       fireOnce();
+      lastFireTs = performance.now();
     }
   }, { passive: false });
 
@@ -1001,7 +1288,9 @@ window.addEventListener('hashchange', () => {
 
   // ── SHOCKWAVE on destroy ──
   function spawnShockwave(x, y, color) {
-    shockwaves.push({ x, y, r: 0, maxR: 220, life: 1, color });
+    // Scale with viewport so explosions feel right on phones and big screens.
+    const maxR = Math.min(160, Math.min(W, H) * 0.24);
+    shockwaves.push({ x, y, r: 0, maxR, life: 1, color });
   }
 
   function updateShockwaves() {
@@ -1100,16 +1389,33 @@ window.addEventListener('hashchange', () => {
   }
 
   // ── POWERUPS ──
+  // Player can earn one caffeine tier per boss arc:
+  //   pre-Alpha → Coffee, post-Alpha → Red Bull, post-Beta → Espresso.
+  // Day One Patch is a clone, not a gating boss.
+  const FIRE_RATE_GATE_BOSSES = ['alphaBuild', 'betaMilestone', 'launchDay'];
+  function getFireRateCap() {
+    let defeated = 0;
+    for (const id of FIRE_RATE_GATE_BOSSES) {
+      const def = BOSS_DEFS.find(d => d.id === id);
+      if (def && def._defeated) defeated++;
+    }
+    return Math.min(3, defeated + 1);
+  }
+
   function spawnPowerup() {
-    const fullyMaxed = player.fireRateLevel >= 3 && player.coneShot && lives >= 6 && player.wingmen >= 2;
-    if (fullyMaxed) return;
+    const fireRateCap = getFireRateCap();
     const pool = POWERUP_TYPES.filter(t => {
-      // Only the next caffeine tier spawns at a time
+      // Only the next caffeine tier spawns at a time, and only if the player
+      // hasn't already used up this arc's allotted upgrade.
       const tierIdx = CAFFEINE_TIERS.indexOf(t.key);
-      if (tierIdx >= 0) return tierIdx === player.fireRateLevel;
-      if (t.key === 'access') return !player.coneShot;
-      if (t.key === 'heart') return lives < 6;
-      if (t.key === 'hire') return player.wingmen < 2;
+      if (tierIdx >= 0) return tierIdx === player.fireRateLevel && player.fireRateLevel < fireRateCap;
+      if (t.key === 'access')       return !player.coneShot;
+      if (t.key === 'heart')        return lives < maxLives;
+      if (t.key === 'hire')         return player.wingmen < 2;
+      if (t.key === 'pullRequest')  return !player.pierce;
+      if (t.key === 'sideProject')  return !player.sideProject;
+      if (t.key === 'stockOptions') return !player.stockOptions;
+      if (t.key === 'techDebt')     return !player.techDebtPaid;
       return true;
     });
     if (!pool.length) return;
@@ -1283,6 +1589,46 @@ window.addEventListener('hashchange', () => {
       ctx.moveTo(px - pl, py); ctx.lineTo(px + pl, py);
       ctx.moveTo(px, py - pl); ctx.lineTo(px, py + pl);
       ctx.stroke();
+    } else if (type === 'pullRequest') {
+      // "PR" glyph
+      ctx.font = 'bold ' + (s * 0.85) + 'px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('PR', 0, s * 0.04);
+    } else if (type === 'sideProject') {
+      // Mini-ship triangle (the drone)
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.45);
+      ctx.lineTo(-s * 0.4, s * 0.35);
+      ctx.lineTo(0, s * 0.15);
+      ctx.lineTo(s * 0.4, s * 0.35);
+      ctx.closePath();
+      ctx.fill();
+    } else if (type === 'stockOptions') {
+      // Dollar sign
+      ctx.font = 'bold ' + (s * 1.05) + 'px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('$', 0, s * 0.04);
+    } else if (type === 'techDebt') {
+      // Heart with a check (paid-off debt)
+      const hs = s * 0.5;
+      ctx.beginPath();
+      ctx.arc(-hs * 0.5, -hs * 0.15, hs * 0.55, Math.PI, Math.PI * 2 + 0.2);
+      ctx.arc( hs * 0.5, -hs * 0.15, hs * 0.55, -0.2 - Math.PI, 0);
+      ctx.lineTo(0, hs * 0.95);
+      ctx.closePath();
+      ctx.fill();
+      // Check mark on top
+      ctx.strokeStyle = orbColor;
+      ctx.lineWidth = Math.max(2, s * 0.11);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.16, -s * 0.05);
+      ctx.lineTo(-s * 0.04,  s * 0.10);
+      ctx.lineTo( s * 0.20, -s * 0.18);
+      ctx.stroke();
+      ctx.strokeStyle = '#0a0a0f';
     }
     ctx.restore();
   }
@@ -1343,11 +1689,50 @@ window.addEventListener('hashchange', () => {
     ctx.restore();
   }
 
+  function showFlashMessage(text, variant) {
+    const el = document.getElementById('token-limit-flash');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.toggle('green', variant === 'green');
+    el.classList.remove('show');
+    void el.offsetWidth; // force reflow so the animation restarts
+    el.classList.add('show');
+  }
+
   function applyPowerup(type) {
     if (CAFFEINE_TIERS.indexOf(type) >= 0) player.fireRateLevel = Math.min(3, player.fireRateLevel + 1);
-    if (type === 'access') player.coneShot = true;
-    if (type === 'heart') { lives = Math.min(6, lives + 1); updateLives(); }
-    if (type === 'hire') player.wingmen = Math.min(2, player.wingmen + 1);
+    if (type === 'access') {
+      player.coneShot = true;
+      player.coneShotExpiresAt = performance.now() + CLAUDE_ACCESS_DURATION_MS;
+    }
+    if (type === 'heart') { lives = Math.min(maxLives, lives + 1); updateLives(); }
+    if (type === 'hire') {
+      player.wingmen = Math.min(2, player.wingmen + 1);
+      if (!nextQuitCheckAt) {
+        nextQuitCheckAt = performance.now() + QUIT_CHECK_MIN_MS + Math.random() * (QUIT_CHECK_MAX_MS - QUIT_CHECK_MIN_MS);
+      }
+    }
+    if (type === 'pullRequest') {
+      player.pierce = true;
+      player.pierceExpiresAt = performance.now() + PIERCE_DURATION_MS;
+    }
+    if (type === 'sideProject') {
+      player.sideProject = true;
+      drone = { angle: 0, lastFireTs: 0, x: ship.x, y: ship.y };
+      if (!nextSideProjectCheckAt) {
+        nextSideProjectCheckAt = performance.now() + SIDE_PROJECT_CHECK_MIN_MS +
+          Math.random() * (SIDE_PROJECT_CHECK_MAX_MS - SIDE_PROJECT_CHECK_MIN_MS);
+      }
+    }
+    if (type === 'stockOptions') {
+      player.stockOptions = true;
+    }
+    if (type === 'techDebt') {
+      player.techDebtPaid = true;
+      maxLives = 7;
+      lives = Math.min(maxLives, lives + 2);
+      updateLives();
+    }
     updatePowerupHUD();
   }
 
@@ -1361,8 +1746,13 @@ window.addEventListener('hashchange', () => {
       const cl = labels[Math.min(player.fireRateLevel, labels.length) - 1];
       parts.push('<span style="color:#ffcc33">' + cl + '</span>');
     }
-    if (player.coneShot) parts.push('<span style="color:#d97757">CLAUDE ACCESS</span>');
-    if (player.wingmen > 0) parts.push('<span style="color:#bda2ff">TEAM SIZE: ' + (player.wingmen + 1) + '</span>');
+    if (player.coneShot)        parts.push('<span style="color:#d97757">CLAUDE ACCESS</span>');
+    if (player.pierce)          parts.push('<span style="color:#4caf50">PULL REQUEST</span>');
+    if (player.sideProject)     parts.push('<span style="color:#ff7043">SIDE PROJECT</span>');
+    if (player.stockOptions)    parts.push('<span style="color:#ffd700">STOCK ×1.25</span>');
+    if (player.techDebtPaid)    parts.push('<span style="color:#7e57c2">DEBT PAID</span>');
+    const teamSize = player.wingmen + player.principalEngineers + 1;
+    if (teamSize > 1)           parts.push('<span style="color:#bda2ff">TEAM SIZE: ' + teamSize + '</span>');
     el.innerHTML = parts.join(' · ');
     if (sep) sep.style.display = parts.length ? '' : 'none';
   }
@@ -1372,7 +1762,10 @@ window.addEventListener('hashchange', () => {
   function spawnWord(gameOverMode) {
     const text = WORDS[Math.floor(Math.random() * WORDS.length)];
     const color = WORD_COLORS[Math.floor(Math.random() * WORD_COLORS.length)];
-    const fontSize = 14 + Math.floor(Math.random() * 6);
+    const isMobile = window.innerWidth <= 600;
+    const fontSize = isMobile
+      ? 11 + Math.floor(Math.random() * 5)  // 11-15 on mobile, smaller targets
+      : 14 + Math.floor(Math.random() * 6); // 14-19 on desktop
     ctx.font = `bold ${fontSize}px "Courier New", monospace`;
     const tw = ctx.measureText(text).width;
 
@@ -1386,18 +1779,26 @@ window.addEventListener('hashchange', () => {
       } else {
         x = W - margin + Math.random() * Math.max(10, margin - tw - 10);
       }
+    } else if (phase === 'boss-fight' || phase === 'boss-enraged') {
+      // During boss fights, words stay inside the boss's playfield so the
+      // player can't camp the screen edges where the boss can't reach them.
+      const pf = getPlayfield();
+      const minX = pf.left + 20;
+      const maxX = pf.right - tw - 20;
+      x = minX + Math.random() * Math.max(0, maxX - minX);
     } else {
       x = Math.random() * (W - tw - 40) + 20;
     }
 
-    const speed = (0.35 + Math.random() * 0.55) * (1 + Math.min(score / 800, 3.4));
-    // Multi-HP chance ramps with score. Up to 3 length-based + 3 score-based = max 6 HP.
-    const lengthBonus = text.length > 14 ? 3 : text.length > 9 ? 2 : 1;
+    const t = activeWordTuning;
+    const speed = (t.speedBaseMin + Math.random() * t.speedBaseRange) *
+                  (1 + Math.min(score / t.speedScoreScale, t.speedScoreCap));
+    const lengthBonus = text.length > t.lengthHpLong ? 3 : text.length > t.lengthHpShort ? 2 : 1;
     let scoreBonus = 0;
-    if (Math.random() < Math.min(score / 1500, 0.55)) scoreBonus++;
-    if (Math.random() < Math.min(score / 3000, 0.5))  scoreBonus++;
-    if (Math.random() < Math.min(score / 5000, 0.45)) scoreBonus++;
-    const hp = Math.min(6, lengthBonus + scoreBonus);
+    for (const gate of t.hpScoreGates) {
+      if (Math.random() < Math.min(score / gate.score, gate.chance)) scoreBonus++;
+    }
+    const hp = Math.min(t.hpCap, lengthBonus + scoreBonus + bossDefeatedHpBonus);
     words.push({ text, color, x, y: -20, vy: speed, fontSize, width: tw, hp, maxHp: hp, hitFlash: 0, shakeX: 0, shakeY: 0 });
   }
 
@@ -1417,22 +1818,600 @@ window.addEventListener('hashchange', () => {
     }
   }
 
-  function drawShip(x, y, scale) {
+  // ── BOSS ──────────────────────────────────────
+  // Bosses roam, and their gap-line attacks span, this fixed-width column
+  // centered on the screen. Keeps difficulty consistent across screen sizes.
+  const PLAYFIELD_WIDTH = 800;
+  function getPlayfield() {
+    const w = Math.min(PLAYFIELD_WIDTH, W);
+    const left = (W - w) / 2;
+    return { left, right: left + w, width: w };
+  }
+
+  // Boss attack patterns. Each takes the active boss and reads from boss.def
+  // for any per-boss tuning. Add new patterns here to use in BOSS_DEFS.
+  function pattern_gapLine(boss) {
+    const pf = getPlayfield();
+    const ballR = 9;
+    const spacing = 38;
+    // Bullets span the full screen so the player can't camp the edges.
+    const startX = 22;
+    const endX = W - 22;
+    const usableW = endX - startX;
+    // The gap, however, is restricted to the centered playfield so big
+    // screens don't get an easy out at the edge.
+    const gapWidth = ship.width * 3.4; // ~95px — comfortably fits the ship
+    const gapMin = pf.left + 22;
+    const gapMax = pf.right - 22 - gapWidth;
+    const gapStart = gapMin + Math.random() * Math.max(1, gapMax - gapMin);
+    const gapEnd = gapStart + gapWidth;
+    const count = Math.floor(usableW / spacing) + 1;
+    for (let i = 0; i < count; i++) {
+      const x = startX + i * spacing;
+      if (x > endX) break;
+      if (x > gapStart && x < gapEnd) continue;
+      enemyShots.push({
+        type: 'straight',
+        x, y: boss.y + 30,
+        vx: 0, vy: 4.2,
+        r: ballR,
+        color: '#ff5c57',
+        glow: '#ff8a87',
+        trail: [],
+      });
+    }
+  }
+
+  // Limited-turn-radius homing ball (purple). Explodes at screen edges.
+  // Low turn rate so the player can juke them with lateral movement.
+  function spawnHomingBall(x, y) {
+    enemyShots.push({
+      type: 'homing',
+      x, y,
+      vx: 0, vy: 2.5,
+      r: 9,
+      color: '#bd93f9',
+      glow: '#dcc8ff',
+      maxSpeed: 3.2,
+      turnRate: 0.012,
+      trail: [],
+    });
+  }
+
+  // Queue for staggered enemy shots (e.g. a homing burst that fires over time).
+  let pendingShots = [];
+  function processPendingShots(ts) {
+    for (let i = pendingShots.length - 1; i >= 0; i--) {
+      const ps = pendingShots[i];
+      if (ts < ps.fireAt) continue;
+      const b = ps.srcBoss;
+      const stillFiring = b && !b._dying && !b.fading && bosses.indexOf(b) !== -1;
+      if (stillFiring && ps.kind === 'homing') {
+        spawnHomingBall(b.x, b.y + 30);
+      }
+      pendingShots.splice(i, 1);
+    }
+  }
+
+  function pattern_homingBurst(boss) {
+    // Three homing balls staggered 1s apart so the player has time to react.
+    const now = performance.now();
+    for (let i = 0; i < 3; i++) {
+      pendingShots.push({ kind: 'homing', srcBoss: boss, fireAt: now + i * 1000 });
+    }
+  }
+
+  // Boss roster. Add entries to introduce more bosses; each is fully
+  // self-contained with its own attack list and enrage tuning.
+  // Common shape:
+  //   triggerScore  – cumulative score that summons the boss (null = not score-triggered, e.g. clones)
+  //   onHpThreshold – { fraction, fn(boss) } fires once when HP first drops below the fraction
+  //   winsGame      – defeating every spawned boss with this flag triggers the win flow
+  //   reward(player)– called once on death to grant a permanent upgrade
+  const BOSS_DEFS = [
+    {
+      id: 'alphaBuild',
+      text: 'ALPHA BUILD',
+      triggerScore: 20000,
+      hp: 600,
+      color: '#ff3838',
+      fontScale: 0.085, fontMin: 28, fontMax: 72,
+      introY: 110,
+      drift: 1.0,
+      scoreReward: 2000,
+      enrageThreshold: 0.25,
+      attacks: [
+        { fn: pattern_gapLine, interval: 2500, startDelay: 1500 },
+      ],
+      reward: function() {
+        player.principalEngineers = Math.min(2, player.principalEngineers + 1);
+        updatePowerupHUD();
+        showFlashMessage('PRINCIPAL ENGINEER', 'green');
+      },
+      enrageWordTuning: {
+        intervalStart: 3300,
+        intervalScoreToFloor: 1500,
+        intervalFloor: 1100,
+        speedBaseMin: 0.30,
+        speedBaseRange: 0.45,
+        speedScoreScale: 50000,    // cap (2.5) reached at score 125k
+        speedScoreCap: 2.5,
+        lengthHpShort: 9,
+        lengthHpLong: 14,
+        hpScoreGates: [
+          { score: 2000,   chance: 0.45 },
+          { score: 8000,   chance: 0.40 },
+          { score: 20000,  chance: 0.35 },
+          { score: 35000,  chance: 0.30 },
+          { score: 50000,  chance: 0.25 },
+          { score: 80000,  chance: 0.20 },
+          { score: 125000, chance: 0.15 },
+        ],
+        hpCap: 10,
+      },
+    },
+    {
+      id: 'betaMilestone',
+      text: 'BETA MILESTONE',
+      triggerScore: 50000,
+      hp: 900,
+      color: '#9b59b6',
+      fontScale: 0.082, fontMin: 28, fontMax: 70,
+      introY: 110,
+      drift: 1.4,
+      scoreReward: 3500,
+      enrageThreshold: 0.25,
+      attacks: [
+        { fn: pattern_gapLine, interval: 2200, startDelay: 1500 },
+        { fn: pattern_homingBurst, interval: 5500, startDelay: 3500 },
+      ],
+      reward: function() {
+        player.principalEngineers = Math.min(2, player.principalEngineers + 1);
+        updatePowerupHUD();
+        showFlashMessage('PRINCIPAL ENGINEER', 'green');
+      },
+      enrageWordTuning: {
+        intervalStart: 3000,
+        intervalScoreToFloor: 1800,
+        intervalFloor: 1000,
+        speedBaseMin: 0.34,
+        speedBaseRange: 0.50,
+        speedScoreScale: 45000,    // cap (2.8) reached at score 126k
+        speedScoreCap: 2.8,
+        lengthHpShort: 9,
+        lengthHpLong: 14,
+        hpScoreGates: [
+          { score: 2000,   chance: 0.50 },
+          { score: 8000,   chance: 0.45 },
+          { score: 20000,  chance: 0.40 },
+          { score: 35000,  chance: 0.35 },
+          { score: 50000,  chance: 0.30 },
+          { score: 80000,  chance: 0.25 },
+          { score: 125000, chance: 0.20 },
+        ],
+        hpCap: 10,
+      },
+    },
+    {
+      id: 'launchDay',
+      text: 'LAUNCH DAY',
+      triggerScore: 100000,
+      hp: 1200,
+      color: '#ff9f43',
+      fontScale: 0.082, fontMin: 28, fontMax: 70,
+      introY: 110,
+      drift: 1.6,
+      scoreReward: 5000,
+      enrageThreshold: 0.25,
+      winsGame: true,
+      attacks: [
+        { fn: pattern_gapLine, interval: 2000, startDelay: 1500 },
+        { fn: pattern_homingBurst, interval: 4500, startDelay: 3000 },
+      ],
+      onHpThreshold: {
+        fraction: 0.5,
+        fn: function() {
+          const dp = BOSS_DEFS.find(d => d.id === 'dayOnePatch');
+          if (dp && !dp._spawned) spawnBoss(dp);
+        },
+      },
+      enrageWordTuning: {
+        intervalStart: 2700,
+        intervalScoreToFloor: 2000,
+        intervalFloor: 900,
+        speedBaseMin: 0.36,
+        speedBaseRange: 0.55,
+        speedScoreScale: 42000,    // cap (3.0) reached at score 126k
+        speedScoreCap: 3.0,
+        lengthHpShort: 9,
+        lengthHpLong: 14,
+        hpScoreGates: [
+          { score: 2000,   chance: 0.55 },
+          { score: 8000,   chance: 0.50 },
+          { score: 20000,  chance: 0.45 },
+          { score: 35000,  chance: 0.40 },
+          { score: 50000,  chance: 0.35 },
+          { score: 80000,  chance: 0.30 },
+          { score: 125000, chance: 0.25 },
+        ],
+        hpCap: 10,
+      },
+    },
+    {
+      id: 'dayOnePatch',
+      text: 'DAY ONE PATCH',
+      triggerScore: null,             // spawned by Launch Day, not by score
+      hp: 600,
+      color: '#48dbfb',
+      fontScale: 0.07, fontMin: 24, fontMax: 60,
+      introY: 200,                    // sits below Launch Day so they don't overlap
+      drift: 1.8,
+      scoreReward: 3000,
+      enrageThreshold: 0.25,
+      winsGame: true,
+      attacks: [
+        { fn: pattern_gapLine, interval: 2400, startDelay: 1500 },
+      ],
+      enrageWordTuning: {
+        intervalStart: 2700,
+        intervalScoreToFloor: 1500,
+        intervalFloor: 900,
+        speedBaseMin: 0.36,
+        speedBaseRange: 0.55,
+        speedScoreScale: 42000,    // cap (3.0) reached at score 126k
+        speedScoreCap: 3.0,
+        lengthHpShort: 9,
+        lengthHpLong: 14,
+        hpScoreGates: [
+          { score: 2000,   chance: 0.55 },
+          { score: 8000,   chance: 0.50 },
+          { score: 20000,  chance: 0.45 },
+          { score: 35000,  chance: 0.40 },
+          { score: 50000,  chance: 0.35 },
+          { score: 80000,  chance: 0.30 },
+          { score: 125000, chance: 0.25 },
+        ],
+        hpCap: 10,
+      },
+    },
+  ];
+
+  function setWordTuning(tuning) {
+    activeWordTuning = tuning;
+    // NORMAL ramps from absolute score 0; boss tunings ramp from the score at swap time.
+    tuningStartScore = (tuning === NORMAL_WORD_TUNING) ? 0 : score;
+  }
+
+  function getCurrentWordInterval() {
+    const t = activeWordTuning;
+    const delta = Math.max(0, score - tuningStartScore);
+    const fraction = Math.min(1, delta / t.intervalScoreToFloor);
+    return t.intervalStart - (t.intervalStart - t.intervalFloor) * fraction;
+  }
+
+  function spawnBoss(def) {
+    if (def._spawned && !def._defeated) return; // already in play
+    def._spawned = true;
+    def._defeated = false;
+    const fontSize = Math.max(def.fontMin, Math.min(def.fontMax, W * def.fontScale));
+    ctx.save();
+    ctx.font = `bold ${fontSize}px "Courier New", monospace`;
+    const width = ctx.measureText(def.text).width;
+    ctx.restore();
+    const now = performance.now();
+    bosses.push({
+      def,
+      x: W / 2,
+      y: -fontSize - 20,
+      targetY: def.introY,
+      intro: true,
+      fading: false,
+      fadeAlpha: 1,
+      vx: def.drift,
+      fontSize,
+      width,
+      hp: def.hp,
+      maxHp: def.hp,
+      hitFlash: 0,
+      attackTimers: def.attacks.map(a => now + (a.startDelay || 1500)),
+    });
+  }
+
+  function startBossFade() {
+    if (!bosses.length) return;
+    for (const b of bosses) b.fading = true;
+    enemyShots = [];
+  }
+
+  function damageBoss(boss, x, y, amount = 1) {
+    if (boss._dying || boss.fading || boss.intro) return;
+    boss.hp = Math.max(0, boss.hp - amount);
+    boss.hitFlash = 1;
+    if (boss.hp % 12 === 0) spawnParticles(x, y, boss.def.color, 4);
+
+    if (boss.def.onHpThreshold && !boss._thresholdFired &&
+        boss.hp <= boss.maxHp * boss.def.onHpThreshold.fraction) {
+      boss._thresholdFired = true;
+      boss.def.onHpThreshold.fn(boss);
+    }
+
+    if (boss.hp <= 0) {
+      boss._dying = true;
+      boss.def._defeated = true;
+      const bx = boss.x, by = boss.y;
+      spawnParticles(bx, by, boss.def.color, 80);
+      spawnParticles(bx, by, '#ffd32a', 40);
+      spawnShockwave(bx, by, boss.def.color);
+      updateScore(boss.def.scoreReward || 2000, true);
+      enemyShots = [];
+      // Each main boss defeat permanently bumps every future word's base HP by 2.
+      if (FIRE_RATE_GATE_BOSSES.indexOf(boss.def.id) !== -1) {
+        bossDefeatedHpBonus += 2;
+      }
+      if (typeof boss.def.reward === 'function') boss.def.reward();
+      checkWinCondition();
+    }
+  }
+
+  function checkWinCondition() {
+    const winSpawned = BOSS_DEFS.filter(d => d.winsGame && d._spawned);
+    if (winSpawned.length === 0) return;
+    if (winSpawned.every(d => d._defeated)) triggerWin();
+  }
+
+  function updateBoss(ts) {
+    for (const boss of bosses) {
+      if (boss.fading) {
+        boss.fadeAlpha -= 0.025 * dt;
+        if (boss.fadeAlpha <= 0) boss._removeNextFrame = true;
+        continue;
+      }
+      if (boss._dying) {
+        // Defeated — fade out faster than a player-loss fade.
+        boss.fadeAlpha -= 0.05 * dt;
+        if (boss.fadeAlpha <= 0) boss._removeNextFrame = true;
+        continue;
+      }
+      if (boss.intro) {
+        boss.y += (boss.targetY - boss.y) * Math.min(1, 0.04 * dt);
+        if (Math.abs(boss.targetY - boss.y) < 1.5) {
+          boss.y = boss.targetY;
+          boss.intro = false;
+        }
+        continue;
+      }
+
+      boss.x += boss.vx * dt;
+      const halfW = boss.width / 2 + 24;
+      const pf = getPlayfield();
+      const leftBound = Math.max(halfW, pf.left + halfW);
+      const rightBound = Math.min(W - halfW, pf.right - halfW);
+      if (boss.x < leftBound) { boss.x = leftBound; boss.vx = Math.abs(boss.vx); }
+      if (boss.x > rightBound) { boss.x = rightBound; boss.vx = -Math.abs(boss.vx); }
+      if (boss.hitFlash > 0) boss.hitFlash -= 0.08 * dt;
+
+      for (let i = 0; i < boss.def.attacks.length; i++) {
+        const atk = boss.def.attacks[i];
+        if (ts >= boss.attackTimers[i]) {
+          atk.fn(boss);
+          boss.attackTimers[i] = ts + atk.interval;
+        }
+      }
+    }
+    bosses = bosses.filter(b => !b._removeNextFrame);
+  }
+
+  function drawBoss() {
+    for (const boss of bosses) {
+      ctx.save();
+      ctx.globalAlpha = boss.fadeAlpha;
+      ctx.font = `bold ${boss.fontSize}px "Courier New", monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.shadowBlur = 22;
+      ctx.shadowColor = boss.def.color;
+      ctx.fillStyle = boss.hitFlash > 0 ? '#ffffff' : boss.def.color;
+      ctx.fillText(boss.def.text, boss.x, boss.y);
+
+      if (!boss.intro && !boss.fading && !boss._dying) {
+        const barW = Math.min(boss.width + 40, W - 60);
+        const barX = boss.x - barW / 2;
+        const barY = boss.y + 14;
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255,255,255,0.12)';
+        ctx.fillRect(barX, barY, barW, 6);
+        ctx.fillStyle = boss.def.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = boss.def.color;
+        ctx.fillRect(barX, barY, barW * (boss.hp / boss.maxHp), 6);
+      }
+      ctx.restore();
+    }
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function updatePhaseState(ts) {
+    if (phase === 'playing') {
+      for (const def of BOSS_DEFS) {
+        if (!def._triggered && def.triggerScore != null && score >= def.triggerScore) {
+          def._triggered = true;
+          pendingBossDef = def;
+          phase = 'boss-pending';
+          return;
+        }
+      }
+    } else if (phase === 'boss-pending') {
+      // Wait until the player has cleared remaining words before the intro.
+      if (words.length === 0) {
+        phase = 'boss-intro';
+        bossIntroStartTs = ts;
+        bossFlashTriggered = false;
+      }
+    } else if (phase === 'boss-intro') {
+      const elapsed = ts - bossIntroStartTs;
+      if (!bossFlashTriggered && elapsed > 200) {
+        showFlashMessage('MILESTONE APPROACHING');
+        bossFlashTriggered = true;
+      }
+      if (elapsed > 2200 && bosses.length === 0 && pendingBossDef) {
+        spawnBoss(pendingBossDef);
+        pendingBossDef = null;
+      }
+      if (bosses.length > 0 && bosses.every(b => !b.intro && !b.fading)) {
+        phase = 'boss-fight';
+      }
+    } else if (phase === 'boss-fight') {
+      if (bosses.length === 0) {
+        phase = 'playing';
+        setWordTuning(NORMAL_WORD_TUNING);
+      } else {
+        // Enrage when ANY active boss drops below its threshold.
+        for (const b of bosses) {
+          if (b.intro || b.fading || b._dying) continue;
+          if (b.hp <= b.maxHp * b.def.enrageThreshold) {
+            phase = 'boss-enraged';
+            setWordTuning(b.def.enrageWordTuning);
+            lastWordTime = ts;
+            break;
+          }
+        }
+      }
+    } else if (phase === 'boss-enraged') {
+      if (bosses.length === 0) {
+        phase = 'playing';
+        setWordTuning(NORMAL_WORD_TUNING);
+      }
+    }
+  }
+
+  function updateEnemyShots() {
+    enemyShots.forEach(s => {
+      // Trail trail trail
+      s.trail.push({ x: s.x, y: s.y });
+      if (s.trail.length > 7) s.trail.shift();
+
+      if (s.type === 'homing') {
+        const dx = ship.x - s.x;
+        const dy = ship.y - s.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const sp = Math.sqrt(s.vx * s.vx + s.vy * s.vy) || 1;
+        // Only steer while the player is in the missile's forward hemisphere.
+        // Once they're past (dot < threshold) the missile commits to a straight line.
+        const forwardDot = (s.vx * dx + s.vy * dy) / (sp * dist);
+        if (forwardDot > 0.05) {
+          const tgtVx = (dx / dist) * s.maxSpeed;
+          const tgtVy = (dy / dist) * s.maxSpeed;
+          s.vx += (tgtVx - s.vx) * s.turnRate * dt;
+          s.vy += (tgtVy - s.vy) * s.turnRate * dt;
+          const newSp = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+          if (newSp > s.maxSpeed) {
+            s.vx = (s.vx / newSp) * s.maxSpeed;
+            s.vy = (s.vy / newSp) * s.maxSpeed;
+          }
+        }
+      }
+
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+
+      // Edge collision: homing balls explode, straight shots just leave.
+      if (s.type === 'homing' && (s.x < 0 || s.x > W || s.y < 0 || s.y > H)) {
+        s.exploded = true;
+        spawnParticles(s.x, s.y, s.color, 12);
+      }
+
+      // Hit player
+      if (!s.exploded && !s.hit && performance.now() - lastDamageTs > 700) {
+        const dx = s.x - ship.x;
+        const dy = s.y - ship.y;
+        const hitR = s.r + ship.width * 0.45;
+        if (dx * dx + dy * dy <= hitR * hitR) {
+          s.hit = true;
+          damagePlayer();
+        }
+      }
+    });
+    enemyShots = enemyShots.filter(s => !s.hit && !s.exploded && s.y < H + 40 && s.y > -40);
+  }
+
+  function drawEnemyShots() {
+    enemyShots.forEach(s => {
+      // Trail
+      for (let i = 0; i < s.trail.length; i++) {
+        const t = s.trail[i];
+        const a = (i + 1) / s.trail.length;
+        ctx.save();
+        ctx.globalAlpha = a * 0.55;
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, s.r * (0.4 + a * 0.4), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      // Ball
+      ctx.save();
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = s.color;
+      ctx.fillStyle = s.color;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+      // Highlight
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = s.glow;
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.arc(s.x - s.r * 0.3, s.y - s.r * 0.3, s.r * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
+  let devInvincible = false;
+  window.toggleDevInvincible = function() {
+    devInvincible = !devInvincible;
+    const btn = document.getElementById('dev-invincible-btn');
+    if (btn) {
+      btn.textContent = 'Invincible · ' + (devInvincible ? 'ON' : 'OFF');
+      btn.classList.toggle('active', devInvincible);
+    }
+  };
+
+  function damagePlayer() {
+    if (devInvincible) return;
+    lastDamageTs = performance.now();
+    lives--;
+    updateLives();
+    spawnParticles(ship.x, ship.y, '#ff5c57', 14);
+    spawnShockwave(ship.x, ship.y, '#ff5c57');
+    if (lives <= 0) showGameOver();
+  }
+
+  function hexToRgba(hex, a) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+  }
+
+  function drawShip(x, y, scale, color) {
     scale = scale || 1;
+    color = color || '#c9ff57';
     const w = ship.width * scale, h = ship.height * scale;
     ctx.save();
     ctx.translate(x, y);
     const glowRadius = (10 + Math.sin(frameCount * 0.1) * 3) * scale;
     const grd = ctx.createRadialGradient(0, h/2+2, 0, 0, h/2+2, glowRadius);
-    grd.addColorStop(0, 'rgba(201,255,87,0.3)');
-    grd.addColorStop(1, 'rgba(201,255,87,0)');
+    grd.addColorStop(0, hexToRgba(color, 0.3));
+    grd.addColorStop(1, hexToRgba(color, 0));
     ctx.fillStyle = grd;
     ctx.beginPath();
     ctx.arc(0, h/2+2, glowRadius, 0, Math.PI*2);
     ctx.fill();
-    ctx.fillStyle = '#c9ff57';
+    ctx.fillStyle = color;
     ctx.shadowBlur = 6 * scale;
-    ctx.shadowColor = '#c9ff57';
+    ctx.shadowColor = color;
     ctx.beginPath();
     ctx.moveTo(0, -h/2);
     ctx.lineTo(-w/2, h/2);
@@ -1447,7 +2426,7 @@ window.addEventListener('hashchange', () => {
     ctx.beginPath();
     ctx.arc(0, 0, 3.5 * scale, 0, Math.PI*2);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(201,255,87,0.4)';
+    ctx.strokeStyle = hexToRgba(color, 0.4);
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(-w/4, h/3); ctx.lineTo(-w/2+4, h/2-2);
@@ -1457,14 +2436,47 @@ window.addEventListener('hashchange', () => {
   }
 
   function drawWingmen() {
-    getWingmanPositions().forEach(p => drawShip(p.x, p.y, 0.7));
+    getWingmanPositions().forEach(p => drawShip(p.x, p.y, 0.7, p.color));
+  }
+
+  function updateDrone(ts) {
+    if (!player.sideProject) { drone = null; return; }
+    if (!drone) drone = { angle: 0, lastFireTs: 0, x: ship.x, y: ship.y };
+    drone.angle += 0.045 * dt;
+    const orbitR = ship.width * 1.9;
+    drone.x = ship.x + Math.cos(drone.angle) * orbitR;
+    drone.y = ship.y + Math.sin(drone.angle) * orbitR;
+    // Rapid, sloppy fire — random direction inside a cone in front of the ship.
+    if (ts - drone.lastFireTs > 110) {
+      const halfCone = Math.PI / 4.5; // ~40° half-angle, 80° total spread
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 2 * halfCone;
+      const speed = 12;
+      bullets.push({
+        x: drone.x,
+        y: drone.y - 6,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 2.2,
+        pierce: player.pierce,
+        color: '#ff7043', // matches the drone body
+      });
+      drone.lastFireTs = ts;
+    }
+  }
+
+  function drawDrone() {
+    if (!drone) return;
+    drawShip(drone.x, drone.y, 0.55, '#ff7043');
   }
 
   function drawBullet(b) {
+    // Explicit bullet color (e.g. blue from a Principal Engineer) wins;
+    // otherwise pierce bullets glow blue and regular bullets stay green.
+    const color = b.color || (b.pierce ? '#48dbfb' : '#c9ff57');
     ctx.save();
     ctx.shadowBlur = 8;
-    ctx.shadowColor = '#c9ff57';
-    ctx.fillStyle = '#c9ff57';
+    ctx.shadowColor = color;
+    ctx.fillStyle = color;
     ctx.beginPath();
     ctx.rect(b.x - b.size/2, b.y - b.size, b.size, b.size * 4);
     ctx.fill();
@@ -1530,8 +2542,16 @@ window.addEventListener('hashchange', () => {
     ctx.restore();
   }
 
-  function updateScore(n) {
-    score += n;
+  function updateScore(n, force) {
+    // Score is frozen during boss arcs so the player can't grind words during
+    // a fight. Boss kill rewards bypass this with `force = true`.
+    if (!force) {
+      const inBossArc = phase === 'boss-pending' || phase === 'boss-intro' ||
+                        phase === 'boss-fight'   || phase === 'boss-enraged';
+      if (inBossArc) return;
+    }
+    const mult = player.stockOptions ? 1.25 : 1;
+    score += Math.round(n * mult);
     document.getElementById('hud-score').textContent = 'SCORE: ' + String(score).padStart(5,'0');
     updateHighScore();
   }
@@ -1548,20 +2568,252 @@ window.addEventListener('hashchange', () => {
     gameOver = true;
     updateHighScore();
     if (autoFireInterval) { clearInterval(autoFireInterval); autoFireInterval = null; }
+    startBossFade();
+    const hint = document.getElementById('hud-hint');
+    if (hint) hint.style.display = 'none';
+
+    const isHome = !window.location.hash || window.location.hash === '#home';
+    if (isHome) {
+      showGameOverModal();
+    } else {
+      // Detail/resume pages keep the existing HUD-bar respawn flow.
+      const hudLives = document.getElementById('hud-lives');
+      const respawn = document.getElementById('hud-respawn');
+      if (hudLives) hudLives.style.display = 'none';
+      respawn.style.display = 'flex';
+    }
+  }
+
+  function showGameOverModal() {
+    const modal = document.getElementById('game-over-modal');
+    const card = document.getElementById('game-over-card');
+    card.innerHTML =
+      '<h2 class="modal-title">Continue?</h2>' +
+      '<div class="modal-buttons">' +
+        '<button class="modal-btn modal-btn-secondary" id="modal-no">No</button>' +
+        '<button class="modal-btn modal-btn-primary" id="modal-offer">Offer George a Job</button>' +
+      '</div>';
+    modal.classList.remove('fade-out');
+    modal.classList.add('show');
+    document.getElementById('modal-no').onclick = handleModalNo;
+    document.getElementById('modal-offer').onclick = handleModalOffer;
+  }
+
+  function hideGameOverModal(callback) {
+    const modal = document.getElementById('game-over-modal');
+    modal.classList.add('fade-out');
+    setTimeout(() => {
+      modal.classList.remove('show', 'fade-out');
+      if (callback) callback();
+    }, 350);
+  }
+
+  function handleModalNo() {
+    hideGameOverModal(() => {
+      showFlashMessage('INDUSTRY WINS');
+      // Once the big flash plays, expose the HUD respawn button so they can restart.
+      setTimeout(() => {
+        const hudLives = document.getElementById('hud-lives');
+        const respawn = document.getElementById('hud-respawn');
+        if (hudLives) hudLives.style.display = 'none';
+        respawn.style.display = 'flex';
+      }, 2300);
+    });
+  }
+
+  // ── WIN FLOW ──
+  function triggerWin() {
+    if (gameWon || gameOver) return;
+    gameWon = true;
+    // Explode every remaining word.
+    for (const w of words) {
+      const cx = w.x + w.width / 2;
+      const cy = w.y - w.fontSize / 2;
+      spawnParticles(cx, cy, w.color, 16);
+      spawnShockwave(cx, cy, w.color);
+    }
+    words = [];
+    enemyShots = [];
+    showFlashMessage('GAME SHIPPED', 'green');
+    setTimeout(showWinModal, 2400);
+  }
+
+  function showWinModal() {
+    if (gameOver) return; // player died before the modal opened
+    const modal = document.getElementById('game-over-modal');
+    const card = document.getElementById('game-over-card');
+    card.innerHTML =
+      '<h2 class="modal-title">Support this game post launch?</h2>' +
+      '<div class="modal-buttons">' +
+        '<button class="modal-btn modal-btn-secondary" id="win-no">No</button>' +
+        '<button class="modal-btn modal-btn-primary" id="win-yes">Yes</button>' +
+      '</div>';
+    modal.classList.remove('fade-out');
+    modal.classList.add('show');
+    document.getElementById('win-no').onclick = handleWinNo;
+    document.getElementById('win-yes').onclick = handleWinYes;
+  }
+
+  function handleWinNo() {
+    hideGameOverModal(() => {
+      // Treated as a loss — same red INDUSTRY WINS flash and end-of-run state.
+      gameOver = true;
+      gameWon = false;
+      if (autoFireInterval) { clearInterval(autoFireInterval); autoFireInterval = null; }
+      showFlashMessage('INDUSTRY WINS');
+      setTimeout(() => {
+        const hudLives = document.getElementById('hud-lives');
+        const respawn = document.getElementById('hud-respawn');
+        if (hudLives) hudLives.style.display = 'none';
+        respawn.style.display = 'flex';
+      }, 2300);
+    });
+  }
+
+  function handleWinYes() {
+    hideGameOverModal(() => {
+      // Continue playing endlessly; bosses already _triggered, no respawn.
+      gameWon = false;
+      phase = 'playing';
+      setWordTuning(NORMAL_WORD_TUNING);
+    });
+  }
+
+  function handleModalOffer() {
+    const card = document.getElementById('game-over-card');
+    card.innerHTML =
+      '<button class="modal-close" id="modal-close" aria-label="Close">&times;</button>' +
+      '<h2 class="modal-title">Thanks For Playing</h2>' +
+      '<p class="modal-body">' +
+        'Reach me at:<br>' +
+        '<a href="mailto:george.a.schober@gmail.com">george.a.schober@gmail.com</a><br>' +
+        '<a href="tel:+18475082826">(847) 508-2826</a>' +
+      '</p>';
+    document.getElementById('modal-close').onclick = handleModalNo;
+  }
+
+  // Dev/test: jump to a specific boss with the matching caffeine tier.
+  window.skipToBoss = function(n) {
+    const targets = [
+      { id: 'alphaBuild',    score: 20000,  fireLevel: 1 },
+      { id: 'betaMilestone', score: 50000,  fireLevel: 2 },
+      { id: 'launchDay',     score: 100000, fireLevel: 3 },
+    ];
+    const t = targets[n - 1];
+    if (!t) return;
+
+    // Mark earlier bosses as already done so they don't trigger,
+    // and credit the HP-bump bonus for each one skipped past.
+    bossDefeatedHpBonus = 0;
+    for (let i = 0; i < n - 1; i++) {
+      const def = BOSS_DEFS.find(d => d.id === targets[i].id);
+      if (def) { def._triggered = true; def._spawned = true; def._defeated = true; }
+      bossDefeatedHpBonus += 2;
+    }
+    // Make the target boss eligible to fire fresh.
+    const targetDef = BOSS_DEFS.find(d => d.id === t.id);
+    if (targetDef) { targetDef._triggered = false; targetDef._spawned = false; targetDef._defeated = false; }
+    if (t.id === 'launchDay') {
+      const dp = BOSS_DEFS.find(d => d.id === 'dayOnePatch');
+      if (dp) { dp._triggered = false; dp._spawned = false; dp._defeated = false; }
+    }
+
+    // Reset transient state.
+    bosses = [];
+    enemyShots = [];
+    pendingShots = [];
+    pendingBossDef = null;
+    bossIntroStartTs = 0;
+    bossFlashTriggered = false;
+    phase = 'playing';
+    gameOver = false;
+    gameWon = false;
+    setWordTuning(NORMAL_WORD_TUNING);
+
+    // Set score and grant the caffeine tier.
+    score = t.score;
+    document.getElementById('hud-score').textContent = 'SCORE: ' + String(score).padStart(5, '0');
+    updateHighScore();
+
+    // Stack the player with a generous loadout for testing.
+    player.fireRateLevel = t.fireLevel;
+    player.wingmen = 2;
+    player.coneShot = true;
+    player.coneShotExpiresAt = performance.now() + CLAUDE_ACCESS_DURATION_MS;
+    player.pierce = true;
+    player.pierceExpiresAt = performance.now() + PIERCE_DURATION_MS;
+    player.sideProject = true;
+    drone = { angle: 0, lastFireTs: 0, x: ship.x, y: ship.y };
+    nextSideProjectCheckAt = performance.now() + SIDE_PROJECT_CHECK_MIN_MS +
+      Math.random() * (SIDE_PROJECT_CHECK_MAX_MS - SIDE_PROJECT_CHECK_MIN_MS);
+    player.stockOptions = true;
+    player.techDebtPaid = true;
+    maxLives = 7;
+    lives = maxLives;
+    updateLives();
+    // Run rewards from any boss being skipped past (e.g. Principal Engineer
+    // from Alpha) so testing matches the real progression.
+    for (let i = 0; i < n - 1; i++) {
+      const def = BOSS_DEFS.find(d => d.id === targets[i].id);
+      if (def && typeof def.reward === 'function') def.reward();
+    }
+    updatePowerupHUD();
+
+    // Reveal HUD, hide game-over UI if shown.
     const respawn = document.getElementById('hud-respawn');
     const hint = document.getElementById('hud-hint');
     const hudLives = document.getElementById('hud-lives');
-    if (hint) hint.style.display = 'none';
-    if (hudLives) hudLives.style.display = 'none';
-    respawn.style.display = 'flex';
-  }
+    if (respawn) respawn.style.display = 'none';
+    if (hint) hint.style.display = '';
+    if (hudLives) hudLives.style.display = '';
+    document.getElementById('game-hud').classList.add('visible');
+    const modal = document.getElementById('game-over-modal');
+    if (modal) modal.classList.remove('show', 'fade-out');
+
+    // Make sure the game is unlocked & started (mobile + desktop).
+    mobileUnlocked = true;
+    if (!gameStarted) {
+      mouseX = W / 2;
+      mouseY = ship.y;
+      gameStarted = true;
+      if (isTouchDevice()) startAutoFire();
+    }
+    // Scroll to the playspace on home so the boss is visible.
+    const homeEl = document.getElementById('page-home');
+    if (homeEl) homeEl.scrollTop = homeEl.scrollHeight;
+  };
 
   window.resetGame = function() {
     score = 0; lives = 3; gameOver = false;
     bullets = []; words = []; particles = []; shockwaves = []; powerups = [];
-    lastWordTime = 0; wordInterval = 2800;
+    enemyShots = []; bosses = []; pendingShots = [];
+    phase = 'playing';
+    pendingBossDef = null;
+    bossIntroStartTs = 0;
+    bossFlashTriggered = false;
+    lastDamageTs = 0;
+    gameWon = false;
+    BOSS_DEFS.forEach(d => {
+      d._triggered = false;
+      d._spawned = false;
+      d._defeated = false;
+    });
+    bossDefeatedHpBonus = 0;
+    setWordTuning(NORMAL_WORD_TUNING);
+    lastWordTime = 0;
     lastPowerupTime = 0;
-    player.fireRateLevel = 0; player.coneShot = false; player.wingmen = 0;
+    player.fireRateLevel = 0;
+    player.coneShot = false; player.coneShotExpiresAt = 0;
+    player.wingmen = 0;
+    player.principalEngineers = 0;
+    player.pierce = false; player.pierceExpiresAt = 0;
+    player.sideProject = false;
+    nextSideProjectCheckAt = 0;
+    player.stockOptions = false;
+    player.techDebtPaid = false;
+    maxLives = 6;
+    drone = null;
+    nextQuitCheckAt = 0;
     updatePowerupHUD();
     updateScore(0); updateLives();
     const respawn = document.getElementById('hud-respawn');
@@ -1570,6 +2822,8 @@ window.addEventListener('hashchange', () => {
     respawn.style.display = 'none';
     if (hint) hint.style.display = '';
     if (hudLives) hudLives.style.display = '';
+    const modal = document.getElementById('game-over-modal');
+    if (modal) modal.classList.remove('show', 'fade-out');
     // Restart auto-fire on mobile
     if (isTouchDevice()) {
       if (autoFireInterval) { clearInterval(autoFireInterval); autoFireInterval = null; }
@@ -1621,16 +2875,74 @@ window.addEventListener('hashchange', () => {
       words = words.filter(w => w.y < H + 40);
       particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.05 * dt; p.life -= p.decay * dt; });
       particles = particles.filter(p => p.life > 0);
+      // Boss projectiles drift off-screen, no further damage.
+      enemyShots.forEach(s => { s.x += s.vx * dt; s.y += s.vy * dt; });
+      enemyShots = enemyShots.filter(s => s.y < H + 40 && s.y > -40);
+      // Boss fades out gracefully if it was on-screen when the player died.
+      updateBoss(ts);
       updateShockwaves();
       drawShockwaves();
       words.forEach(drawWord);
       powerups.forEach(p => { p.y += p.vy * dt; });
       powerups = powerups.filter(p => p.y < H + 40);
       powerups.forEach(drawPowerup);
+      drawBoss();
+      drawEnemyShots();
       particles.forEach(drawParticle);
       drawWingmen();
       drawShip(ship.x, ship.y);
       return;
+    }
+
+    // Claude Access expiry — kicks the player back to single-shot.
+    if (player.coneShot && performance.now() >= player.coneShotExpiresAt) {
+      player.coneShot = false;
+      player.coneShotExpiresAt = 0;
+      updatePowerupHUD();
+      showFlashMessage('HIT TOKEN USAGE LIMIT');
+    }
+
+    // Pull Request Approved expiry — pierce wears off.
+    if (player.pierce && performance.now() >= player.pierceExpiresAt) {
+      player.pierce = false;
+      player.pierceExpiresAt = 0;
+      updatePowerupHUD();
+      showFlashMessage('MERGE CONFLICT');
+    }
+
+    // Side Project — every 12–25s, roll the chance the drone leaves.
+    if (player.sideProject && nextSideProjectCheckAt && performance.now() >= nextSideProjectCheckAt) {
+      if (Math.random() < SIDE_PROJECT_QUIT_CHANCE) {
+        player.sideProject = false;
+        drone = null;
+        nextSideProjectCheckAt = 0;
+        updatePowerupHUD();
+        showFlashMessage('NON - COMPETE AGREEMENT');
+      } else {
+        nextSideProjectCheckAt = performance.now() + SIDE_PROJECT_CHECK_MIN_MS +
+          Math.random() * (SIDE_PROJECT_CHECK_MAX_MS - SIDE_PROJECT_CHECK_MIN_MS);
+      }
+    }
+
+    // Wingman quit check — every 20–45s, each tick rolls QUIT_CHANCE to lose one.
+    // Employees stay loyal during boss fights — the roll defers until after.
+    if (player.wingmen > 0 && nextQuitCheckAt && performance.now() >= nextQuitCheckAt) {
+      const inBossFight =
+        phase === 'boss-pending' || phase === 'boss-intro' ||
+        phase === 'boss-fight'   || phase === 'boss-enraged';
+      if (inBossFight) {
+        nextQuitCheckAt = performance.now() + QUIT_CHECK_MIN_MS +
+          Math.random() * (QUIT_CHECK_MAX_MS - QUIT_CHECK_MIN_MS);
+      } else {
+        if (Math.random() < QUIT_CHANCE) {
+          player.wingmen--;
+          updatePowerupHUD();
+          showFlashMessage('EMPLOYEE QUIT');
+        }
+        nextQuitCheckAt = player.wingmen > 0
+          ? performance.now() + QUIT_CHECK_MIN_MS + Math.random() * (QUIT_CHECK_MAX_MS - QUIT_CHECK_MIN_MS)
+          : 0;
+      }
     }
 
     // Ship follows cursor (clamp accounts for wingmen flanking)
@@ -1638,15 +2950,19 @@ window.addEventListener('hashchange', () => {
     const targetX = Math.max(flankPad, Math.min(W - flankPad, mouseX));
     ship.x += (targetX - ship.x) * Math.min(1, 0.14 * dt);
 
-    // Spawn words
-    if (ts - lastWordTime > wordInterval) {
+    // Phase state machine — handles boss trigger, intro, enrage, return-to-play.
+    if (!gameWon) updatePhaseState(ts);
+    const wordsCanSpawn = !gameWon && (phase === 'playing' || phase === 'boss-enraged');
+
+    // Spawn words (paused during boss intro and main fight; resumes on enrage).
+    // Spawn cadence is score-driven, recomputed every frame.
+    if (wordsCanSpawn && ts - lastWordTime > getCurrentWordInterval()) {
       spawnWord(false);
       lastWordTime = ts;
-      wordInterval = Math.max(450, wordInterval - 55);
     }
 
-    // Spawn powerups
-    if (ts - lastPowerupTime > powerupInterval && score > 100) {
+    // Spawn powerups (continues through every phase, including the boss fight; pauses on win).
+    if (!gameWon && ts - lastPowerupTime > powerupInterval && score > 100) {
       spawnPowerup();
       lastPowerupTime = ts;
     }
@@ -1657,13 +2973,23 @@ window.addEventListener('hashchange', () => {
     words.forEach(w => { w.y += w.vy * dt; });
     powerups.forEach(p => { p.y += p.vy * dt; });
 
-    // Collisions
+    // Collisions. Pierce keeps bullets alive; we track which targets each
+    // bullet has already hit so it doesn't re-damage the same one per frame.
     bullets.forEach(b => {
       words.forEach(w => {
+        // Words are invincible until they've fully cleared the nav bar.
+        if (w.y < NAV_HEIGHT + w.fontSize) return;
+        if (b.pierce && b._hit && b._hit.indexOf(w) !== -1) return;
+        if (!b.pierce && b.dead) return;
         if (b.x >= w.x - 4 && b.x <= w.x + w.width + 4 &&
             b.y >= w.y - w.fontSize && b.y <= w.y + 4) {
-          b.dead = true;
-          w.hp--;
+          if (b.pierce) {
+            (b._hit || (b._hit = [])).push(w);
+          } else {
+            b.dead = true;
+          }
+          const dmg = b.pierce ? 2 : 1;
+          w.hp -= dmg;
           // Shake & flash on hit
           w.hitFlash = 1;
           w.shakeX = (Math.random() - 0.5) * 10;
@@ -1681,12 +3007,34 @@ window.addEventListener('hashchange', () => {
           }
         }
       });
+      // Bullet vs boss(es)
+      for (const boss of bosses) {
+        if (!b.pierce && b.dead) break;
+        if (boss._dying || boss.fading || boss.intro) continue;
+        if (b.pierce && b._hit && b._hit.indexOf(boss) !== -1) continue;
+        if (b.x >= boss.x - boss.width / 2 && b.x <= boss.x + boss.width / 2 &&
+            b.y >= boss.y - boss.fontSize && b.y <= boss.y + 8) {
+          if (b.pierce) {
+            (b._hit || (b._hit = [])).push(boss);
+          } else {
+            b.dead = true;
+          }
+          damageBoss(boss, b.x, b.y, b.pierce ? 2 : 1);
+        }
+      }
       // Bullet vs powerup
       powerups.forEach(p => {
-        if (b.dead) return;
+        if (!b.pierce && b.dead) return;
+        if (b.pierce && b._hit && b._hit.indexOf(p) !== -1) return;
+        // Powerups are invincible until they've fully cleared the nav bar.
+        if (p.y < NAV_HEIGHT + p.r) return;
         const dx = b.x - p.x, dy = b.y - p.y;
         if (dx * dx + dy * dy <= p.r * p.r) {
-          b.dead = true;
+          if (b.pierce) {
+            (b._hit || (b._hit = [])).push(p);
+          } else {
+            b.dead = true;
+          }
           p.hits++;
           p.hitFlash = 1;
           spawnParticles(p.x, p.y, p.color, 6);
@@ -1716,6 +3064,11 @@ window.addEventListener('hashchange', () => {
     });
     powerups = powerups.filter(p => !p.collected && p.y < H + 40);
 
+    updateBoss(ts);
+    processPendingShots(ts);
+    updateEnemyShots();
+    updateDrone(ts);
+
     // Update particles
     particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.05 * dt; p.life -= p.decay * dt; });
     particles = particles.filter(p => p.life > 0);
@@ -1724,9 +3077,12 @@ window.addEventListener('hashchange', () => {
     words.forEach(drawWord);
     powerups.forEach(drawPowerup);
     bullets.forEach(drawBullet);
+    drawBoss();
+    drawEnemyShots();
     particles.forEach(drawParticle);
     drawShield();
     drawWingmen();
+    drawDrone();
     drawShip(ship.x, ship.y);
   }
 
