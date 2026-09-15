@@ -1,6 +1,6 @@
 # georgeschober.github.io
 
-Personal portfolio website for George Schober — Senior Technical Designer.
+Personal portfolio website for George Schober — Expert Technical Designer.
 
 ## Quick Setup
 

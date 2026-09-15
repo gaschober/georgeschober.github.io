@@ -262,8 +262,14 @@
   }
   .card-body .skill-tags {
     margin: 0;
-    gap: 0.3rem;
+    gap: 0.22rem;
     justify-content: center;
+  }
+  /* Card tags run tighter than detail-page tags so the widest pair
+     ("AI Design" + "Open World Design") fits on one line in a card body. */
+  .card-body .skill-tags .tag {
+    font-size: 0.58rem;
+    padding: 0.15rem 0.48rem;
   }
   .card-body { text-align: center; }
   .skill-tags .tag {
@@ -586,6 +592,16 @@
   }
   .resume-entry ul li { margin-bottom: 0.3rem; }
   .resume-entry ul li::marker { color: var(--accent); }
+  /* Small competency sub-headings inside a single resume entry. Same
+     Courier-uppercase-accent treatment as the CoD timeline sub-heads. */
+  .resume-entry h5 {
+    font-family: 'Courier New', monospace;
+    font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--accent);
+    margin: 1rem 0 0.4rem;
+  }
+  .resume-entry h5:first-of-type { margin-top: 0.5rem; }
 
   .skills-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
   .skills-list span {
@@ -863,7 +879,7 @@
 <div class="page active" id="page-home">
   <div class="home-center" id="home-center">
     <h1>George <em>Schober</em></h1>
-    <p>Senior Technical Designer on Call of Duty specializing in AI and the systems that support it. Focused on designing compelling AI combatants and building the tools and pipelines that empower designers to do their best work.</p>
+    <p>Expert Technical Designer on Call of Duty specializing in AI and the systems that support it. Focused on designing compelling AI combatants and building the tools and pipelines that empower designers to do their best work.</p>
     <div class="project-row" id="project-row">
       <div class="project-card" onclick="navigate('cod')">
         <img src="images/cod.jpg" alt="Call of Duty">
@@ -872,7 +888,6 @@
           <div class="skill-tags">
             <span class="tag">AI Design</span>
             <span class="tag">Combat Design</span>
-            <span class="tag">Leadership</span>
           </div>
         </div>
       </div>
@@ -891,7 +906,7 @@
         <div class="card-body">
           <h3>Plunder Panic</h3>
           <div class="skill-tags">
-            <span class="tag">AI / Bot Design</span>
+            <span class="tag">AI Design</span>
             <span class="tag">Generalist</span>
           </div>
         </div>
@@ -901,8 +916,8 @@
         <div class="card-body">
           <h3>Whipslash</h3>
           <div class="skill-tags">
-            <span class="tag">Leadership</span>
             <span class="tag">Combat Design</span>
+            <span class="tag">AI Design</span>
           </div>
         </div>
       </div>
@@ -927,9 +942,8 @@
     <div class="skill-tags">
       <span class="tag">AI Design</span>
       <span class="tag">Combat Design</span>
-      <span class="tag">Leadership</span>
     </div>
-    <p class="subtitle">Senior Technical Designer at High Moon Studios, working across multiple Call of Duty titles. Responsible for the design and ownership of enemy AI archetypes and combat encounters, and for partnering closely with Engineering, Animation, and Art to make every fight feel distinct and memorable.</p>
+    <p class="subtitle">Expert Technical Designer at High Moon Studios, working across multiple Call of Duty titles. Responsible for the design and ownership of enemy AI archetypes and combat encounters, and for partnering closely with Engineering, Animation, and Art to make every fight feel distinct and memorable.</p>
 
     <div class="cod-timeline">
 
@@ -945,10 +959,10 @@
         <h4>AI Design & Combat Systems</h4>
         <ul>
           <li>Designed a new Grenade Launcher AI archetype that allows players to actively dodge incoming fire — a first for Call of Duty</li>
-          <li>Designed a drone enemy archetype featuring destructible parts and 3 unique combat behaviors</li>
-          <li>Reworked a Juggernaut-type AI with area-denial attacks, area-of-effect abilities, and new coordinated group behaviors with other AI types</li>
+          <li>Conceived and implemented a drone enemy archetype featuring destructible parts and multiple unique combat behaviors</li>
+          <li>Created new Juggernaut-type AI with area-denial attacks, area-of-effect abilities, and new coordinated group behaviors with other AI types</li>
           <li>Scripted an elemental damage system that interacts with enemy AI in distinct ways, introducing new player strategies for taking down combatants</li>
-          <li>Improvements to AI archetypes from my work have already been adopted into core systems and standard soldier types shipping in future Call of Duty projects, demonstrating broad franchise-wide impact</li>
+          <li>Improvements to AI archetypes from my work have already been adopted into core systems and standard soldier types shipping in future Call of Duty projects</li>
         </ul>
 
         <h4>Foundational Systems & Scripting</h4>
@@ -1066,10 +1080,10 @@
   <div class="detail">
     <h2>Plunder Panic</h2>
     <div class="skill-tags">
-      <span class="tag">AI / Bot Design</span>
+      <span class="tag">AI Design</span>
       <span class="tag">Generalist</span>
     </div>
-    <p class="subtitle">A pirate-themed up-to-12-player action-arcade game where two teams race to one of four win conditions. IndieCade Audience Choice Award 2017, IndieCade Esports 2019, released on Steam September 2021.</p>
+    <p class="subtitle">A pirate-themed up-to-12-player action-arcade game where two teams race to one of four win conditions. IndieCade Audience Choice Award 2017, released on Steam September 2021.</p>
     <a class="ext-link" href="https://store.steampowered.com/app/1455900/Plunder_Panic/" target="_blank" rel="noopener">View on Steam ↗</a>
     <div class="images-row">
       <img src="images/plunderpanic-1.png" alt="Plunder Panic screenshot">
@@ -1099,8 +1113,8 @@
   <div class="detail">
     <h2>Whipslash</h2>
     <div class="skill-tags">
-      <span class="tag">Leadership</span>
       <span class="tag">Combat Design</span>
+      <span class="tag">AI Design</span>
     </div>
     <p class="subtitle">Armed with two electric axes, fight your way out of a complex full of hostile robots. Accepted into the 2020 Independent Games Festival — one of 550 competing titles.</p>
     <div class="images-row">
@@ -1137,13 +1151,34 @@
     <div class="resume-section">
       <h3>Professional Experience</h3>
       <div class="resume-entry">
-        <h4>Senior Technical Designer — High Moon Studios</h4>
+        <h4>Expert Technical Designer — High Moon Studios</h4>
         <div class="meta">Call of Duty franchise</div>
+
+        <h5>AI Design & Combat</h5>
         <ul>
-          <li>Designed and balanced soldier AI stealth systems in Campaign missions</li>
-          <li>Collaborated with Engineering to enhance ambient AI systems</li>
-          <li>Conceived and developed a new fast travel system for MWZ</li>
-          <li>Redesigned attack helicopter enemy and pathing logic</li>
+          <li>Designed new Grenade Launcher AI archetype that lets players actively dodge incoming fire — a first for the franchise</li>
+          <li>Conceived and implemented a drone enemy archetype featuring destructible parts and multiple unique combat behaviors</li>
+          <li>Created new Juggernaut-type AI with area-denial attacks and coordinated group behaviors; improvements adopted into core systems and standard soldier types in future titles</li>
+          <li>Scripted an elemental damage system that interacts with enemy AI in distinct ways, widening player combat strategy</li>
+        </ul>
+
+        <h5>Foundational Systems</h5>
+        <ul>
+          <li>Built a shared-markup spawn system enabling a small design team to mark up geometry at scale, replacing per-activity markup with area-level rules</li>
+          <li>Extended the Zombies ammo-mod system with support for custom attachments; authored new reusable status effects for future modes</li>
+          <li>Conceived and developed a new fast-travel system for the MWZ game mode (Modern Warfare III)</li>
+        </ul>
+
+        <h5>Cross-discipline Leadership</h5>
+        <ul>
+          <li>Took on a design-leadership role as the team scaled — cross-discipline check-ins, production planning, and mentorship of junior designers</li>
+          <li>Served as primary design liaison to a partner studio, gathering feedback and driving objective ideation across twice-weekly planning sessions</li>
+        </ul>
+
+        <h5>Generative AI</h5>
+        <ul>
+          <li>Integrated Generative AI into daily scripting and documentation workflows; authored custom prompts and instructions that automate documentation updates and enforce internal tooling APIs</li>
+          <li>Drafted learning materials and gave presentations helping the Design team incorporate these tools into their daily work; built custom AI skills tailored to other departments' workflows, starting with Narrative Design</li>
         </ul>
       </div>
       <div class="resume-entry">
@@ -1157,14 +1192,18 @@
           <li>Refactored existing components into a new script framework</li>
         </ul>
       </div>
+    </div>
+    <div class="resume-section">
+      <h3>Notable Projects</h3>
       <div class="resume-entry">
-        <h4>Gameplay Programmer — GEL Lab, MSU</h4>
-        <div class="meta">March 2019 – May 2020</div>
-        <ul>
-          <li><strong>Plunder Panic:</strong> Dual-utility AI, A* pathing, menu redesign, audio manager</li>
-          <li><strong>Whipslash:</strong> Producer + lead programmer, enemy AI, core mechanics</li>
-          <li><strong>Brain Powered Games Africa:</strong> Data collection system, traveled to Uganda for playtesting</li>
-        </ul>
+        <h4>Plunder Panic</h4>
+        <div class="meta">IndieCade Audience Choice Award 2017 · Released on Steam 2021</div>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.1rem;">Dual-utility AI, node-based movement with modified A* pathing, interchangeable action system, universal data tracking for balance</p>
+      </div>
+      <div class="resume-entry">
+        <h4>Whipslash</h4>
+        <div class="meta">2020 Independent Games Festival · Producer + Lead Programmer</div>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.1rem;">Kung-fu circle attack system, grapple traversal, aim-assisted axe throwing, ragdoll system; managed a team of 10 students across a semester</p>
       </div>
     </div>
     <div class="resume-section">
