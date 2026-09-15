@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0a0a0f">
 <title>George Schober</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0a0a0f;
@@ -25,6 +25,18 @@
   }
 
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* Inline emphasis. Body bullets are muted; lifting bold keywords to a soft
+     desaturated cousin of --accent gives scan-emphasis without resorting to
+     full-white highlight (too loud) or full --accent (already used heavily
+     for tags / dots / sub-headings). */
+  .home-center p strong,
+  .detail .subtitle strong,
+  .detail ul strong,
+  .cod-game-note strong {
+    font-weight: 700;
+    color: #b9bd95;
+  }
   html {
     scroll-behavior: smooth;
     background: var(--bg);
@@ -241,6 +253,170 @@
     text-transform: uppercase;
   }
 
+  /* Reusable: groups of skill tags (used on cards + detail page headers) */
+  .skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0 0 1.25rem;
+  }
+  .card-body .skill-tags {
+    margin: 0;
+    gap: 0.22rem;
+    justify-content: center;
+  }
+  /* Card tags run tighter than detail-page tags so the widest pair
+     ("AI Design" + "Open World Design") fits on one line in a card body. */
+  .card-body .skill-tags .tag {
+    font-size: 0.58rem;
+    padding: 0.15rem 0.48rem;
+  }
+  .card-body { text-align: center; }
+  .skill-tags .tag {
+    display: inline-block;
+    font-size: 0.6rem; font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(201,255,87,0.15);
+    padding: 0.18rem 0.55rem;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .card-body .tag,
+  .card-body .skill-tags .tag {
+    white-space: nowrap;
+  }
+  .detail .skill-tags { margin-top: -0.25rem; margin-bottom: 1.5rem; }
+  .detail .skill-tags .tag { font-size: 0.7rem; padding: 0.25rem 0.65rem; }
+
+  /* ── COD TIMELINE LAYOUT ── */
+  /* CoD page subtitle stretches to match the timeline below, instead of the
+     narrower 620px cap used on other detail pages. */
+  #page-cod .detail .subtitle { max-width: none; }
+
+  .cod-timeline {
+    position: relative;
+    padding-left: 96px;
+    margin-top: 2.5rem;
+  }
+  .cod-timeline::before {
+    content: '';
+    position: absolute;
+    left: 76px;
+    top: 14px;
+    bottom: 14px;
+    width: 1px;
+    background: linear-gradient(to bottom,
+      rgba(201,255,87,0.45) 0%,
+      var(--border) 12%,
+      var(--border) 88%,
+      rgba(255,159,67,0.35) 100%);
+  }
+  .cod-game {
+    position: relative;
+    margin-bottom: 3.25rem;
+    padding-top: 0.4rem;
+  }
+  .cod-game:last-child { margin-bottom: 0.5rem; }
+  .cod-year-label {
+    position: absolute;
+    left: -96px;
+    top: 0.6rem;
+    width: 60px;
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+  .cod-year-dot {
+    position: absolute;
+    left: -26px;
+    top: 0.7rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 0 4px var(--bg), 0 0 12px rgba(201,255,87,0.35);
+    z-index: 1;
+  }
+  .cod-game-locked .cod-year-dot {
+    border-color: #ff9f43;
+    box-shadow: 0 0 0 4px var(--bg), 0 0 10px rgba(255,159,67,0.35);
+    background: var(--bg);
+  }
+  .cod-game-locked .cod-year-label {
+    color: #ff9f43;
+  }
+  .cod-timeline .cod-game-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin: 0 0 0.85rem;
+    border-bottom: none !important;
+    padding-bottom: 0;
+    text-transform: none;
+  }
+  .cod-game-hero {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 7;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+  .cod-game-locked .cod-game-hero { opacity: 0.55; }
+  .cod-game-note {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    line-height: 1.65;
+    margin: 0.5rem 0 0.85rem;
+  }
+  .cod-game-note em {
+    color: #ff9f43;
+    font-style: normal;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .cod-game ul {
+    margin-top: 0.6rem;
+  }
+  .cod-game h4 {
+    font-family: 'Courier New', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 1.5rem 0 0.5rem;
+  }
+  .cod-game h4:first-of-type {
+    margin-top: 1rem;
+  }
+  @media (max-width: 640px) {
+    .cod-timeline { padding-left: 40px; margin-top: 1.5rem; }
+    .cod-timeline::before { left: 20px; }
+    .cod-year-label {
+      position: relative;
+      left: 0; top: 0;
+      width: auto;
+      text-align: left;
+      margin-bottom: 0.4rem;
+      font-size: 0.65rem;
+    }
+    .cod-year-dot { left: -28px; top: 0.45rem; }
+    .cod-timeline .cod-game-title { font-size: 1.05rem; }
+  }
+
   /* Stagger */
   .project-card { opacity: 0; animation: cardIn 0.5s ease forwards; }
   .project-card:nth-child(1) { animation-delay: 0.04s; }
@@ -416,6 +592,16 @@
   }
   .resume-entry ul li { margin-bottom: 0.3rem; }
   .resume-entry ul li::marker { color: var(--accent); }
+  /* Small competency sub-headings inside a single resume entry. Same
+     Courier-uppercase-accent treatment as the CoD timeline sub-heads. */
+  .resume-entry h5 {
+    font-family: 'Courier New', monospace;
+    font-size: 0.62rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--accent);
+    margin: 1rem 0 0.4rem;
+  }
+  .resume-entry h5:first-of-type { margin-top: 0.5rem; }
 
   .skills-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
   .skills-list span {
@@ -693,34 +879,46 @@
 <div class="page active" id="page-home">
   <div class="home-center" id="home-center">
     <h1>George <em>Schober</em></h1>
-    <p>Senior Technical Designer at High Moon Studios specializing in AI and the systems that support it. Focused on crafting compelling AI combatants and building the tools and pipelines that empower designers to do their best work.</p>
+    <p>Expert Technical Designer on Call of Duty specializing in AI and the systems that support it. Focused on designing compelling AI combatants and building the tools and pipelines that empower designers to do their best work.</p>
     <div class="project-row" id="project-row">
       <div class="project-card" onclick="navigate('cod')">
-        <img src="images/cod.jpg" alt="Call Of Duty">
+        <img src="images/cod.jpg" alt="Call of Duty">
         <div class="card-body">
-          <h3>Call Of Duty</h3>
-          <span class="tag">High Moon Studios</span>
+          <h3>Call of Duty</h3>
+          <div class="skill-tags">
+            <span class="tag">AI Design</span>
+            <span class="tag">Combat Design</span>
+          </div>
         </div>
       </div>
       <div class="project-card" onclick="navigate('rockstar')">
-        <img src="images/rockstar.png" alt="Rockstar Games">
+        <img src="images/rockstar.png" alt="GTA VI">
         <div class="card-body">
-          <h3>Rockstar Games</h3>
-          <span class="tag">Open World Design</span>
+          <h3>GTA VI</h3>
+          <div class="skill-tags">
+            <span class="tag">AI Design</span>
+            <span class="tag">Open World Design</span>
+          </div>
         </div>
       </div>
       <div class="project-card" onclick="navigate('plunderpanic')">
         <img src="images/plunderpanic-1.png" alt="Plunder Panic">
         <div class="card-body">
           <h3>Plunder Panic</h3>
-          <span class="tag">GEL Lab · MSU</span>
+          <div class="skill-tags">
+            <span class="tag">AI Design</span>
+            <span class="tag">Generalist</span>
+          </div>
         </div>
       </div>
       <div class="project-card" onclick="navigate('whipslash')">
         <img src="images/whipslash-1.png" alt="Whipslash">
         <div class="card-body">
           <h3>Whipslash</h3>
-          <span class="tag">IGF 2020</span>
+          <div class="skill-tags">
+            <span class="tag">Combat Design</span>
+            <span class="tag">AI Design</span>
+          </div>
         </div>
       </div>
     </div>
@@ -740,29 +938,106 @@
 <!-- COD -->
 <div class="page" id="page-cod">
   <div class="detail">
-    <img class="detail-header-img" src="images/cod.jpg" alt="Call Of Duty">
-    <h2>High Moon Studios — Call Of Duty</h2>
-    <p class="subtitle">Responsible for the design and development of unique encounters across Call Of Duty. Works closely with Engineering to improve AI systems, supporting quicker implementation and additional features.</p>
-    <h3>Black Ops 6</h3>
-    <ul>
-      <li>Designed and balanced elements of soldier AI stealth system in various Campaign missions</li>
-      <li>Collaborated with Engineering to enhance ambient AI systems, making them more dynamic and easier for designers to use</li>
-      <li>Started working in the C++ codebase to swiftly diagnose and fix issues in enemy AI systems</li>
-    </ul>
-    <h3>Modern Warfare III</h3>
-    <ul>
-      <li>Conceived and developed a new fast travel system for MWZ game mode
+    <h2>Call of Duty</h2>
+    <div class="skill-tags">
+      <span class="tag">AI Design</span>
+      <span class="tag">Combat Design</span>
+    </div>
+    <p class="subtitle">Expert Technical Designer at High Moon Studios, working across multiple Call of Duty titles. Responsible for the design and ownership of enemy AI archetypes and combat encounters, and for partnering closely with Engineering, Animation, and Art to make every fight feel distinct and memorable.</p>
+
+    <div class="cod-timeline">
+
+      <!-- UNRELEASED -->
+      <div class="cod-game cod-game-locked">
+        <div class="cod-year-label">NDA</div>
+        <div class="cod-year-dot"></div>
+        <h3 class="cod-game-title">Unreleased</h3>
+        <img class="cod-game-hero" src="images/cod-unreleased.webp" alt="Unreleased Call of Duty title">
+
+        <p class="cod-game-note"><em>Details under NDA.</em> Much of the work below is from an in-development Call of Duty mode, alongside ongoing combat and AI work on upcoming titles.</p>
+
+        <h4>AI Design & Combat Systems</h4>
         <ul>
-          <li>Promoted community engagement upon release; added complexity and longevity to the overall mode</li>
-          <li>Started as a brainstorm; leadership requested a prototype, then iterated through multiple rounds of feedback</li>
+          <li>Designed a new Grenade Launcher AI archetype that allows players to actively dodge incoming fire — a first for Call of Duty</li>
+          <li>Conceived and implemented a drone enemy archetype featuring destructible parts and multiple unique combat behaviors</li>
+          <li>Created new Juggernaut-type AI with area-denial attacks, area-of-effect abilities, and new coordinated group behaviors with other AI types</li>
+          <li>Scripted an elemental damage system that interacts with enemy AI in distinct ways, introducing new player strategies for taking down combatants</li>
+          <li>Improvements to AI archetypes from my work have already been adopted into core systems and standard soldier types shipping in future Call of Duty projects</li>
         </ul>
-      </li>
-      <li>Redesigned and created attack helicopter enemy, along with new pathing logic continually used for helicopter movement</li>
-    </ul>
+
+        <h4>Foundational Systems & Scripting</h4>
+        <ul>
+          <li>Built a shared-markup spawn system that lets a small design team mark up geometry at scale — replacing per-activity markup with area-level rules and automatic AI goal tasking, enabling less linear map structures</li>
+          <li>Extended the Zombies ammo-mod system with support for custom attachments, and authored new reusable status effects for use across future modes</li>
+          <li>Established the mode's file structure and organization for systems, scripts, and assets</li>
+        </ul>
+
+        <h4>Cross-discipline Leadership</h4>
+        <ul>
+          <li>Served as primary design liaison to a partner studio in Shanghai</li>
+          <li>Led twice-weekly planning sessions with the partner team, guiding objective ideation and long-term direction</li>
+          <li>Took on a design-leadership role as the team scaled: cross-discipline check-ins, production planning, mentorship of junior designers, and delegating systems ownership</li>
+        </ul>
+
+        <h4>Generative AI &mdash; Workflow & Team Enablement</h4>
+        <ul>
+          <li>Integrated Generative AI into daily scripting work: drafting implementations I then review and refine, as well as rapidly prototyping new AI behaviors</li>
+          <li>Authored custom prompts and instructions that automate documentation updates for behavior changes and tuning values, and that enforce our internal tooling APIs when AI assistants edit engine data files</li>
+          <li>Drafted learning materials and gave multiple presentations with the goal of helping other designers understand how they might better incorporate these tools in their daily work</li>
+          <li>Built custom AI skills tailored to other departments' workflows, starting with Narrative Design</li>
+        </ul>
+      </div>
+
+      <!-- BLACK OPS 7 -->
+      <div class="cod-game">
+        <div class="cod-year-label">2025</div>
+        <div class="cod-year-dot"></div>
+        <h3 class="cod-game-title">Black Ops 7</h3>
+        <img class="cod-game-hero" src="images/cod-bo7.webp" alt="Black Ops 7">
+        <ul>
+          <li>Designed and implemented ambush behavior for melee soldier AI types that utilize cover and concealment to surprise the player</li>
+          <li>Designed and prototyped a destructible riot shield feature for AI, introducing a new approach to player strategy</li>
+          <li>Established new methods and standards for how designers populate big maps with AI, drastically increasing the amount of work a single designer could output</li>
+          <li>Mentored junior designers on the team and contributed to the design team's pipelines</li>
+        </ul>
+      </div>
+
+      <!-- BLACK OPS 6 -->
+      <div class="cod-game">
+        <div class="cod-year-label">2024</div>
+        <div class="cod-year-dot"></div>
+        <h3 class="cod-game-title">Black Ops 6</h3>
+        <img class="cod-game-hero" src="images/cod-bo6.webp" alt="Black Ops 6">
+        <ul>
+          <li>Designed and balanced elements of soldier AI stealth system in various Campaign missions</li>
+          <li>Collaborated with Engineering to enhance ambient AI systems, making them more dynamic and easier for designers to use</li>
+          <li>Started working in the C++ codebase to swiftly diagnose and fix issues in enemy AI systems</li>
+        </ul>
+      </div>
+
+      <!-- MODERN WARFARE III -->
+      <div class="cod-game">
+        <div class="cod-year-label">2023</div>
+        <div class="cod-year-dot"></div>
+        <h3 class="cod-game-title">Modern Warfare III</h3>
+        <img class="cod-game-hero" src="images/cod-mw3.webp" alt="Modern Warfare III">
+        <ul>
+          <li>Conceived and developed a new fast travel system for MWZ game mode
+            <ul>
+              <li>Promoted community engagement upon release; added complexity and longevity to the overall mode</li>
+              <li>Started as a brainstorm; leadership requested a prototype, then iterated through multiple rounds of feedback</li>
+            </ul>
+          </li>
+          <li>Redesigned and created attack helicopter enemy, along with new pathing logic continually used for helicopter movement</li>
+        </ul>
+      </div>
+
+    </div>
+
     <button id="unlock-cod" class="unlock-btn" onclick="unlockCod()">Unlock — AI Design</button>
     <div class="detail-nav">
       <div></div>
-      <a onclick="navigate('rockstar')">Next →<span>Rockstar Games</span></a>
+      <a onclick="navigate('rockstar')">Next →<span>GTA VI</span></a>
     </div>
   </div>
 </div>
@@ -770,9 +1045,13 @@
 <!-- ROCKSTAR -->
 <div class="page" id="page-rockstar">
   <div class="detail">
-    <img class="detail-header-img" src="images/rockstar.png" alt="Rockstar Games">
-    <h2>Rockstar Games — Game Designer</h2>
-    <p class="subtitle">Designed and implemented systems and content in an open world setting using proprietary software and C# for the new Grand Theft Auto entry.</p>
+    <img class="detail-header-img" src="images/rockstar.png" alt="GTA VI" style="object-position: 50% 10%;">
+    <h2>GTA VI</h2>
+    <div class="skill-tags">
+      <span class="tag">AI Design</span>
+      <span class="tag">Open World Design</span>
+    </div>
+    <p class="subtitle">Game Designer at Rockstar Games San Diego. Designed and implemented systems and content in an open-world setting using proprietary tooling and C# for the new entry in the Grand Theft Auto series.</p>
     <h3>Contributions</h3>
     <ul>
       <li>Designed and produced open world encounters for organic player discovery and replayability</li>
@@ -790,7 +1069,7 @@
     </ul>
     <button id="unlock-rockstar" class="unlock-btn" onclick="unlockRockstar()">Unlock — Open World</button>
     <div class="detail-nav">
-      <a onclick="navigate('cod')">← Previous<span>Call Of Duty</span></a>
+      <a onclick="navigate('cod')">← Previous<span>Call of Duty</span></a>
       <a onclick="navigate('plunderpanic')">Next →<span>Plunder Panic</span></a>
     </div>
   </div>
@@ -800,7 +1079,11 @@
 <div class="page" id="page-plunderpanic">
   <div class="detail">
     <h2>Plunder Panic</h2>
-    <p class="subtitle">A pirate-themed up-to-12-player action-arcade game where two teams race to one of four win conditions. IndieCade Audience Choice Award 2017, IndieCade Esports 2019, released on Steam September 2021.</p>
+    <div class="skill-tags">
+      <span class="tag">AI Design</span>
+      <span class="tag">Generalist</span>
+    </div>
+    <p class="subtitle">A pirate-themed up-to-12-player action-arcade game where two teams race to one of four win conditions. IndieCade Audience Choice Award 2017, released on Steam September 2021.</p>
     <a class="ext-link" href="https://store.steampowered.com/app/1455900/Plunder_Panic/" target="_blank" rel="noopener">View on Steam ↗</a>
     <div class="images-row">
       <img src="images/plunderpanic-1.png" alt="Plunder Panic screenshot">
@@ -819,7 +1102,7 @@
     </ul>
     <button id="unlock-plunderpanic" class="unlock-btn" onclick="unlockPlunderPanic()">Unlock — Pathing</button>
     <div class="detail-nav">
-      <a onclick="navigate('rockstar')">← Previous<span>Rockstar Games</span></a>
+      <a onclick="navigate('rockstar')">← Previous<span>GTA VI</span></a>
       <a onclick="navigate('whipslash')">Next →<span>Whipslash</span></a>
     </div>
   </div>
@@ -829,6 +1112,10 @@
 <div class="page" id="page-whipslash">
   <div class="detail">
     <h2>Whipslash</h2>
+    <div class="skill-tags">
+      <span class="tag">Combat Design</span>
+      <span class="tag">AI Design</span>
+    </div>
     <p class="subtitle">Armed with two electric axes, fight your way out of a complex full of hostile robots. Accepted into the 2020 Independent Games Festival — one of 550 competing titles.</p>
     <div class="images-row">
       <img src="images/whipslash-1.png" alt="Whipslash screenshot">
@@ -846,7 +1133,7 @@
     <button id="unlock-whipslash" class="unlock-btn" onclick="unlockWhipslash()">Unlock — Aim Assist</button>
     <div class="detail-nav">
       <a onclick="navigate('plunderpanic')">← Previous<span>Plunder Panic</span></a>
-      <div></div>
+      <a onclick="navigate('home')">Return<span>Home</span></a>
     </div>
   </div>
 </div>
@@ -864,13 +1151,34 @@
     <div class="resume-section">
       <h3>Professional Experience</h3>
       <div class="resume-entry">
-        <h4>Senior Technical Designer — High Moon Studios</h4>
+        <h4>Expert Technical Designer — High Moon Studios</h4>
         <div class="meta">Call of Duty franchise</div>
+
+        <h5>AI Design & Combat</h5>
         <ul>
-          <li>Designed and balanced soldier AI stealth systems in Campaign missions</li>
-          <li>Collaborated with Engineering to enhance ambient AI systems</li>
-          <li>Conceived and developed a new fast travel system for MWZ</li>
-          <li>Redesigned attack helicopter enemy and pathing logic</li>
+          <li>Designed new Grenade Launcher AI archetype that lets players actively dodge incoming fire — a first for the franchise</li>
+          <li>Conceived and implemented a drone enemy archetype featuring destructible parts and multiple unique combat behaviors</li>
+          <li>Created new Juggernaut-type AI with area-denial attacks and coordinated group behaviors; improvements adopted into core systems and standard soldier types in future titles</li>
+          <li>Scripted an elemental damage system that interacts with enemy AI in distinct ways, widening player combat strategy</li>
+        </ul>
+
+        <h5>Foundational Systems</h5>
+        <ul>
+          <li>Built a shared-markup spawn system enabling a small design team to mark up geometry at scale, replacing per-activity markup with area-level rules</li>
+          <li>Extended the Zombies ammo-mod system with support for custom attachments; authored new reusable status effects for future modes</li>
+          <li>Conceived and developed a new fast-travel system for the MWZ game mode (Modern Warfare III)</li>
+        </ul>
+
+        <h5>Cross-discipline Leadership</h5>
+        <ul>
+          <li>Took on a design-leadership role as the team scaled — cross-discipline check-ins, production planning, and mentorship of junior designers</li>
+          <li>Served as primary design liaison to a partner studio, gathering feedback and driving objective ideation across twice-weekly planning sessions</li>
+        </ul>
+
+        <h5>Generative AI</h5>
+        <ul>
+          <li>Integrated Generative AI into daily scripting and documentation workflows; authored custom prompts and instructions that automate documentation updates and enforce internal tooling APIs</li>
+          <li>Drafted learning materials and gave presentations helping the Design team incorporate these tools into their daily work; built custom AI skills tailored to other departments' workflows, starting with Narrative Design</li>
         </ul>
       </div>
       <div class="resume-entry">
@@ -884,14 +1192,18 @@
           <li>Refactored existing components into a new script framework</li>
         </ul>
       </div>
+    </div>
+    <div class="resume-section">
+      <h3>Notable Projects</h3>
       <div class="resume-entry">
-        <h4>Gameplay Programmer — GEL Lab, MSU</h4>
-        <div class="meta">March 2019 – May 2020</div>
-        <ul>
-          <li><strong>Plunder Panic:</strong> Dual-utility AI, A* pathing, menu redesign, audio manager</li>
-          <li><strong>Whipslash:</strong> Producer + lead programmer, enemy AI, core mechanics</li>
-          <li><strong>Brain Powered Games Africa:</strong> Data collection system, traveled to Uganda for playtesting</li>
-        </ul>
+        <h4>Plunder Panic</h4>
+        <div class="meta">IndieCade Audience Choice Award 2017 · Released on Steam 2021</div>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.1rem;">Dual-utility AI, node-based movement with modified A* pathing, interchangeable action system, universal data tracking for balance</p>
+      </div>
+      <div class="resume-entry">
+        <h4>Whipslash</h4>
+        <div class="meta">2020 Independent Games Festival · Producer + Lead Programmer</div>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.1rem;">Kung-fu circle attack system, grapple traversal, aim-assisted axe throwing, ragdoll system; managed a team of 10 students across a semester</p>
       </div>
     </div>
     <div class="resume-section">
